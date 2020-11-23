@@ -27,4 +27,8 @@ def process_ob():
 def process_ob_get_dir():
     ob_dir = request.form['ob_dir']
     ec_dir = request.form['ec_dir']
+<<<<<<< HEAD
     return ob_dir+'   '+ec_dir+'  '
+=======
+    return ob_dir+'   '+ec_dir
+>>>>>>> fd8c454ba4fa1da529876d7b2eb1990d1b027628
