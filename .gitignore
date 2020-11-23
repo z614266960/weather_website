@@ -104,3 +104,6 @@ venv.bak/
 .mypy_cache/
 
 data_process/
+data/
+images/
+models/

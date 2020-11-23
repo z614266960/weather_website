@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>test</title>
+</head>
+<body>
+    <form action="http://localhost:5000/build" method=post>
+    	ID:
+    	<select name='id'>
+			<option value ="F2273">F2273</option>
+		</select><br/>
+		起报时间:
+    	<select name='time'>
+			<option value ="08">08</option>
+			<option value ="20">20</option>
+		</select><br/>
+		季节:
+    	<select name='season'>
+			<option value ="3-4">3-4</option>
+			<option value ="5-6">5-6</option>
+			<option value ="7-9">7-9</option>
+			<option value ="10-11">10-11</option>
+			<option value ="12-2">12-2</option>
+		</select><br/>
+		预报第
+    	<select name='predict_day'>
+			<option value =1>1</option>
+			<option value =2>2</option>
+			<option value =3>3</option>
+			<option value =4>4</option>
+			<option value =5>5</option>
+			<option value =6>6</option>
+			<option value =7>7</option>
+			<option value =8>8</option>
+			<option value =9>9</option>
+			<option value =10>10</option>
+		</select>天:<br/>
+		建立
+    	<select name='model'>
+			<option value ="all">all</option>
+			<option value ="lstm">lstm</option>
+			<option value ="svr">svr</option>
+		</select>模型:<br/>
+      	<input type=submit value=Upload>
+    </form>
+</body>
+</html>
