@@ -49,10 +49,9 @@ def build_models():
     if model=='all' or model=='svr':
         add_lstm.add_obp(id, season, predict_day, time)
         svr_model.build_svr(id, season, predict_day, time)   
-    return ''+id+time+predict_day+model
-
+    return 'ok'#目前htp超时，以后有时间用队列
 
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)
