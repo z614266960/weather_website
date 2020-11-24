@@ -69,20 +69,17 @@ def build_lstm(ID,data_path='data/lstm/',
     scaler = MinMaxScaler(feature_range=(0, 1))
     dataset = scaler.fit_transform(dataset)
     
-    train_size = int(len(dataset) * 0.8)
+    # 全部用于train 暂时不分
+    train_size = int(len(dataset))
     trainlist = dataset[:train_size]
-    testlist = dataset[train_size:]
     
     # 创建数据集
     trainX,trainY  = create_dataset(trainlist,look_back,look_after)
-    testX,testY = create_dataset(testlist,look_back,look_after)
     
     #结果反归一化
     trainY[:,:,0] = scaler.inverse_transform(trainY[:,:,0])
-    testY[:,:,0] = scaler.inverse_transform(testY[:,:,0])
     
     trainX = numpy.reshape(trainX, (trainX.shape[0], trainX.shape[1], 1))
-    testX = numpy.reshape(testX, (testX.shape[0], testX.shape[1] ,1 ))
     
     # create and fit the LSTM network
     model = Sequential()
@@ -95,7 +92,6 @@ def build_lstm(ID,data_path='data/lstm/',
     
     # make predictions
     trainPredict = model.predict(trainX)
-    testPredict = model.predict(testX)
     
     # 保存图像
     file_tools.check_dir_and_mkdir(images_save_path)
@@ -104,20 +100,8 @@ def build_lstm(ID,data_path='data/lstm/',
     plt.plot(trainPredict[:,0],'g')
     plt.title(ID+'_train')
     plt.savefig(images_save_path+ID+'_train'+'.png')
-    plt.show()
-    plt.figure(figsize=(10,3))
-    plt.plot(testY[:,look_after-1,0],'r')
-    plt.plot(testPredict[:,0],'g')
-    plt.title(ID+'test')
-    plt.savefig(images_save_path+ID+'_test'+'.png')
-    plt.show()
     
-    # 评估
-    from sklearn.metrics import mean_absolute_error
-    my_mae = mean_absolute_error(testPredict[:,0],testY[:,look_after-1,0])
-    print(ID+' '+'my_mae:'+str(my_mae))
-    
-    return 
+    return
     
 
 

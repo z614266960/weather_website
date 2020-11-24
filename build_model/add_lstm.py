@@ -83,5 +83,54 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
 
 
 
-
+def add_obp_by_one(ID,data,predict_day,models_save_path = 'models/lstm/'):
+    """
+    通过lstm模型，添加lstm的预测值obp
+    ----------
+    ID : string
+        要建模的站点
+    data : dataframe
+        所接受的过去15天值
+    predict_day : int
+        要预测的天数
+    models_save_path : string
+        路径，lstm模型存放地点
+    ----------
+    return : dataframe
+        添加ob_p后的数据
+    """
+    
+    MODEL_SAVE_PATH = models_save_path+ID+'_1.h5'
+    
+    origin_data = data
+    origin_data['ob_p'] = ''
+    
+    # 获取数据
+    data = origin_data
+    cols = []
+    for i in range(-15,-(predict_day-1),1):
+        column = 'ob_'+str(i)
+        cols.append(column)
+    for i in range(-(predict_day-1),0,1):
+        column = '10UV_'+str(i)
+        cols.append(column)
+    
+    data = np.array(data[cols])
+    
+    
+    #归一化
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data = scaler.fit_transform(data)
+    
+    X = data.reshape(data.shape[0],data.shape[1],1)
+    Y = np.array(origin_data['ob'])
+    
+    # 加载模型并预测
+    model = load_model(MODEL_SAVE_PATH)
+    Predicts = model.predict(X)
+    
+    # 保存obp结果
+    origin_data['ob_p'] = Predicts
+    cols = ['predict_time','MSL','ob','10UV','ob_p']
+    return origin_data[cols]
 

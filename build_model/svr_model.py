@@ -55,7 +55,7 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     
     # 分trian,test
     # 全部用于train 暂时不分
-    index = int(len(orgin_data))
+    index = int(len(orgin_data)*0.9)
     columns_list = ['MSL','10UV','ob_p']
     # x_train, x_test, y_train, y_test = train_test_split(orgin_data[columns_list], orgin_data['ob'], test_size=0.2,random_state=113)
     x_train = orgin_data[columns_list][:index]
@@ -115,3 +115,41 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     # plt.show()
 
     
+def svr_predict(ID,data,season,predict_day,time,models_save_path='models/svr/'):
+    '''
+    Parameters
+    ----------
+    ID : string
+        要建模的站点
+    data : dataframe
+        成型的obp文件
+    season : string
+        要建模的季节（3-4）
+    predict_day : int
+        要预测的天数
+    time : string
+        要预测的小时(08)
+    models_save_path : string
+        svr模型的保存路径
+    -------
+    Returns : dataframe
+    预测结果
+    '''
+    
+    orgin_data = data
+    
+    columns_list = ['MSL','10UV','ob_p']
+    # x_train, x_test, y_train, y_test = train_test_split(orgin_data[columns_list], orgin_data['ob'], test_size=0.2,random_state=113)
+    x = orgin_data[columns_list]
+    
+    # 归一化
+    min_max_scaler = MinMaxScaler()
+    x_train_scaler = min_max_scaler.fit_transform(x)
+    
+    # 加载模型
+    model_save_path = models_save_path+season+'/'+str(predict_day)+'天/'+time+'/'+ID+'.pkl'
+    model = joblib.load(model_save_path)
+    
+    predictions = model.predict(x)
+    
+    return predictions
