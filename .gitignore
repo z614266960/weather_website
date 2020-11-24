@@ -103,7 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-data_process/
+data_process/实况数据/
 data/
 images/
 models/
