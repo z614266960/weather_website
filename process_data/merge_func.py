@@ -122,7 +122,6 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
     merge_file_path = os.path.join('./','data', 'ob_EC_merge', str(day) + '天', hour, Feature, ID + '.csv')
     isExist = os.path.exists(merge_file_path)
     if isExist:
-        
         if not _10Feature_data.empty and MSL_data.empty:
             select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
             select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
@@ -132,9 +131,7 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
         elif not _10Feature_data.empty:
             select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
             select_MSL = pd.DataFrame()
-        
     else:
-        
         select_10Feature = _10Feature_data
         select_MSL = MSL_data
     
@@ -143,21 +140,20 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
         merge_data = pd.merge(select_10Feature, select_MSL,how='left',on=["now_time","id","lon","lat"])
     elif not select_MSL.empty:
         merge_data = select_MSL
-        merge_data[Feature] = None
-        merge_data[Feature] = 'nan'
+        merge_data.loc[:,Feature] = 'nan'
     elif not select_10Feature.empty:
         merge_data = select_10Feature
-        merge_data['MSL'] = 'nan'
+        merge_data.loc[:,'MSL'] = 'nan'
     else:
         return
         
-    merge_data['ob'] = 'nan'
+    merge_data.loc[:,'ob'] = 'nan'
     for i in range(1,day):
-        merge_data[Feature + '_-'+str(i)] = None
+        merge_data.loc[:,Feature + '_-'+str(i)] = 'nan'
         
     for i in range(1,16):
-        merge_data['ob_-'+str(i)] = None
-    
+        merge_data.loc[:,'ob_-'+str(i)] = 'nan'
+
     for index, row in merge_data.iterrows():
         ob_date_list = get_date_before(row['predict_time'], -15, day)
         
@@ -171,7 +167,7 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
             Feature_select = Feature_data[Feature_data['now_time'] == row['now_time']]
             Feature_select = Feature_select[Feature].values
             if len(Feature_select) != 0:
-                row[ Feature + '_-'+str(sub_index)] = Feature_select[0]
+                row[Feature + '_-'+str(sub_index)] = Feature_select[0]
 
             
         for sub_index in range(1,16):
@@ -232,9 +228,9 @@ def merge_data_for_SVR(ID, feature, nowtime, hour):  #ID_list
         real_path = os.path.join('./','data','ob','012(08-20)', ID + '.csv')
         hour_ob = '08'
     real_data = read_file_real(real_path, hour_ob, feature)
-
+    
+    date_str = date + ' ' + hour + ':00:00'
     for day in range(1,11):
-        date_str = date + ' ' + hour + ':00:00'
         merge_Feature_OB_data(_10Feature_data_dic, _MSL_data_dic, real_data, date, hour, day, ID, feature)
 
 def data_for_SVR(ID, feature, nowtime, hour, predict_day): #ID_list
