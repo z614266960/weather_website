@@ -65,15 +65,10 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
     data = scaler.fit_transform(data)
     
     X = data.reshape(data.shape[0],data.shape[1],1)
-    Y = np.array(origin_data['ob'])
     
     # 加载模型并预测
     model = load_model(MODEL_SAVE_PATH)
     Predicts = model.predict(X)
-    
-    from sklearn.metrics import mean_absolute_error
-    my_mae = mean_absolute_error(Predicts,Y)
-    print('my_mae:'+str(my_mae))
     
     # 保存obp结果
     origin_data['ob_p'] = Predicts
@@ -83,7 +78,7 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
 
 
 
-def add_obp_by_one(ID,data,predict_day,models_save_path = 'models/lstm/'):
+def add_obp_by_one(ID,data,predict_day,time,models_save_path = 'models/lstm/'):
     """
     通过lstm模型，添加lstm的预测值obp
     ----------
@@ -93,6 +88,8 @@ def add_obp_by_one(ID,data,predict_day,models_save_path = 'models/lstm/'):
         所接受的过去15天值
     predict_day : int
         要预测的天数
+    time : string
+        要预测几点起报(08)
     models_save_path : string
         路径，lstm模型存放地点
     ----------
@@ -100,7 +97,7 @@ def add_obp_by_one(ID,data,predict_day,models_save_path = 'models/lstm/'):
         添加ob_p后的数据
     """
     
-    MODEL_SAVE_PATH = models_save_path+ID+'_1.h5'
+    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_1.h5'
     
     origin_data = data
     origin_data['ob_p'] = ''
@@ -123,7 +120,6 @@ def add_obp_by_one(ID,data,predict_day,models_save_path = 'models/lstm/'):
     data = scaler.fit_transform(data)
     
     X = data.reshape(data.shape[0],data.shape[1],1)
-    Y = np.array(origin_data['ob'])
     
     # 加载模型并预测
     model = load_model(MODEL_SAVE_PATH)

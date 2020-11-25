@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>test</title>
+</head>
+<body>
+    <button id='b01'>click</button>
+</body>
+<script src="static/js/jquery-3.5.1.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#b01").click(function(){
+            $.ajax({
+                type : "POST",
+                url : "http://localhost:5000/test/post",
+                data : {
+                    id:'1',
+                    time:'08',
+                    season:'3-4'
+                },
+                success : function(result) {
+                    console.log(result);
+                },
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+        })
+    });
+</script>
+</html>

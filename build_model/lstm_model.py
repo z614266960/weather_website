@@ -33,7 +33,7 @@ def create_dataset(dataset, look_back, look_after):
     return numpy.array(dataX),numpy.array(dataY)
     
 
-def build_lstm(ID,data_path='data/lstm/',
+def build_lstm(ID,time,data_path='data/lstm/',
                look_back=15,look_after=1,
                models_save_path='models/lstm/',
                images_save_path='images/lstm/'):
@@ -42,6 +42,8 @@ def build_lstm(ID,data_path='data/lstm/',
     ----------
     ID : string
         要建模的站点
+    time : string
+        起报时间
     data_path : string
         路径，以站点为划分的所有ob数据，按日期排序
     look_back : int
@@ -56,8 +58,8 @@ def build_lstm(ID,data_path='data/lstm/',
     return:
         
     """
-    FILE_PATH = data_path+ID+'.csv'
-    MODEL_SAVE_PATH = models_save_path+ID+'_'+str(look_after)+'.h5'
+    FILE_PATH = data_path+time+'/'+ID+'.csv'
+    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_'+str(look_after)+'.h5'
     
     dataframe = pd.read_csv(FILE_PATH)
     dataframe.dropna(axis=0,inplace=True)
@@ -98,8 +100,8 @@ def build_lstm(ID,data_path='data/lstm/',
     plt.figure(figsize=(10,3))
     plt.plot(trainY[:,look_after-1,0],'r')
     plt.plot(trainPredict[:,0],'g')
-    plt.title(ID+'_train')
-    plt.savefig(images_save_path+ID+'_train'+'.png')
+    plt.title(ID+'_'+time+'_train')
+    plt.savefig(images_save_path+ID+'_'+time+'_train'+'.png')
     
     return
     
