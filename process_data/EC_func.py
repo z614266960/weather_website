@@ -336,7 +336,7 @@ def predict_date(file_path):
         return None
     
     file_name = file_name_list[0]
-    datestr = '20' + file_name[0:2] + '-' + file_name[2:4] + '-'+  file_name[4:6] + ' ' + file_name[6:8] + ":00:00"
+    datestr = '20' + file_name[0:2] + '-' + file_name[2:4] + '-'+  file_name[4:6]# + ' ' + file_name[6:8] + ":00:00"
     # str2date = datetime.strptime(datestr,"%Y-%m-%d %H:%M:%S")#字符串转化为date形式
     return datestr
     
