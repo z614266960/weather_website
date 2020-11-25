@@ -122,7 +122,6 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
     merge_file_path = os.path.join('./','data', 'ob_EC_merge', str(day) + '天', hour, Feature, ID + '.csv')
     isExist = os.path.exists(merge_file_path)
     if isExist:
-        print('===========如果表存在===============')
         if not _10Feature_data.empty and MSL_data.empty:
             select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
             select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
@@ -134,7 +133,6 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
             select_MSL = pd.DataFrame()
         
     else:
-        print('===========如果表不存在===============')
         select_10Feature = _10Feature_data
         select_MSL = MSL_data
     
