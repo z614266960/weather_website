@@ -122,7 +122,7 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
     merge_file_path = os.path.join('./','data', 'ob_EC_merge', str(day) + '天', hour, Feature, ID + '.csv')
     isExist = os.path.exists(merge_file_path)
     if isExist:
-        if not _10Feature_data.empty and MSL_data.empty:
+        if not _10Feature_data.empty and not MSL_data.empty:
             select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
             select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
         elif not MSL_data.empty:
@@ -136,7 +136,7 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
         select_MSL = MSL_data
     
     if not select_10Feature.empty and not select_MSL.empty:
-        MSL_data.drop(columns = ['predict_time'],inplace=True)
+        select_MSL.drop(columns = ['predict_time'],inplace=True)
         merge_data = pd.merge(select_10Feature, select_MSL,how='left',on=["now_time","id","lon","lat"])
     elif not select_MSL.empty:
         merge_data = select_MSL

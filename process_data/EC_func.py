@@ -312,14 +312,31 @@ def save_MSL_local(ID_list, MSL_dict, file_save_path):
             if len(MSL_select) > 0:
                 time = MSL_select['time'].values[0]
                 hour_str = time[11:13]
-                save_path = os.path.join(file_save_path, day_str, hour_str,  ID + '.csv')#'MSL',
-                # if basic_func.isFileExist(save_path):
-                #     df = pd.read_csv(save_path)
-                #     df = df.append(MSL_select, ignore_index = True)
-                #     df = df.sort_values(by = ['time'])
-                #     df = df.drop_duplicates(subset = ['time'], keep='first')
-                # MSL_select.to_csv(save_path, index=False)
+                
+                day = int(day_str[0:1])
+                MSL_select['predict_time'] = basic_func.get_date_n(MSL_select['time'], day, hour_str)
+                MSL_select.drop(columns = ['dtime'],inplace=True)
+                MSL_select.rename(columns={'time':'now_time'}, inplace = True)
+                
+
+                save_path = os.path.join(file_save_path, day_str, hour_str, "MSL",  ID + '.csv')#'MSL',
+                
+                if basic_func.isFileExist(save_path):
+                    df = pd.read_csv(save_path)
+                    df = df.append(MSL_select, ignore_index = True)                    
+                    df = df.sort_values(by = ['now_time','predict_time'])
+                    df = df.drop_duplicates(subset = ['predict_time'], keep='first')
+                    df.to_csv(save_path, index=False)
+                    
+                else:
+                    cols = MSL_select.columns
+                    cols = ['now_time','predict_time','id','lon','lat','MSL']
+                    MSL_select = MSL_select.loc[:,cols]
+                    # cols.insert(0,cols.pop(cols.index('c')))
+                    MSL_select.to_csv(save_path, index=False)
                 print(save_path)
+                
+                
 
 
 """
@@ -360,9 +377,9 @@ def process_raw_EC_data(raw_file_path, ID_list, file_save_path = './data/EC_byID
     
     Station_Info = {"Station_ID":predict_ID, "Longitude":predict_Longitude_raw, "Latitude":predict_Latitude_raw}
 
-    _10U_dict = interpolate_other(raw_file_path, '10U', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
-    _10V_dict = interpolate_other(raw_file_path, '10V', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
-    save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path)
+    # _10U_dict = interpolate_other(raw_file_path, '10U', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
+    # _10V_dict = interpolate_other(raw_file_path, '10V', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
+    # save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path)
     
     MSL_dict = process_MSL(raw_file_path, 'MSL', predict_ID, predict_Longitude_raw, predict_Latitude_raw)    
     save_MSL_local(ID_list, MSL_dict, file_save_path)
