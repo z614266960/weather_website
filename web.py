@@ -27,7 +27,7 @@ def process_ob():
 
 param_dict = {'Station_list': ['F2273', 'F2286'], 'predict_date': '2015-08-15'}
 # 获取处理ob数据的路径
-@app.route('/process/ob/get_dir', methods=['GET', 'POST'])
+@app.route('/process/ob/get_dir', methods=['POST'])
 def process_ob_get_dir():
     ob_dir = request.form['ob_dir']
     ec_dir = request.form['ec_dir']
@@ -39,7 +39,7 @@ def process_ob_get_dir():
     global param_dict
     param_dict['Station_list'] = Station_list
     param_dict['predict_date'] = predict_date
-    print(param_dict)
+    # print(param_dict)
     # return param_dict
     return render_template('build_models.html', param_dict = param_dict)
 
@@ -66,16 +66,17 @@ def build_models():
     #predict_day 1-10天
     # 获取SVR模型所需的一行数据
     df_SVR = merge_func.data_for_SVR(id, '10UV', param_dict['predict_date'], time, predict_day)
+    print(df_SVR)
     #数据返回格式 dict{'F2273':dataFrame}
 
-    # from build_model import lstm_model,add_lstm,svr_model
-    # if model=='all' or model=='lstm':
-    #     lstm_model.build_lstm(id,time)
-    # if model=='all' or model=='svr':
-    #     add_lstm.add_obp(id, season, int(predict_day), time)
-    #     svr_model.build_svr(id, season, int(predict_day), time)   
-    # res = make_response('ok')
-    # return res
+    from build_model import lstm_model,add_lstm,svr_model
+    if model=='all' or model=='lstm':
+        lstm_model.build_lstm(id,time)
+    if model=='all' or model=='svr':
+        add_lstm.add_obp(id, season, int(predict_day), time)
+        svr_model.build_svr(id, season, int(predict_day), time)   
+    res = make_response('ok')
+    return res
  
 
 # 进入建立预测页面
