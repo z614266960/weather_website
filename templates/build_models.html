@@ -8,14 +8,7 @@
     <form action="http://localhost:5000/build" method=post>
     	ID:
     	<select name='id'>
-    	<option value ='F2273'>F2273</option>
-        {%for key, value in param_dict.items()%}	
-           	{% if key == 'Station_list'  %}
-               	{%for ID in value%}
-           			<option value ={{ID}}>{{ID}}</option>
-           		{% endfor %}
-           	{% endif %}
-        {% endfor %}
+        	<option value ='F2273'>F2273</option>
 		</select><br/>
     	<!--预测日期:
     	<select name='date'>
@@ -58,6 +51,7 @@
 			<option value ="svr">svr</option>
 		</select>模型:<br/>
       	<input type=submit value=Upload>
+      	<button type="button">Test</button>
     </form>
 </body>
 

@@ -9,6 +9,13 @@
     	ID:
     	<select name='id'>
         	<option value ='F2273'>F2273</option>
+	       {%for key, value in param_dict.items()%}	
+               	{% if key == 'Station_list'  %}
+                   	{%for ID in value%}
+               			<option value ={{ID}}>{{ID}}</option>
+               		{% endfor %}
+               	{% endif %}
+            {% endfor %}
 		</select><br/>
     	起报时间:
       	<select name='time'>
