@@ -78,7 +78,7 @@ def add_obp(ID,season,predict_day,time,type,data_path='data/last_15_days/',
 
 
 
-def add_obp_by_one(ID,data,predict_day,time,models_save_path = 'models/lstm/'):
+def add_obp_by_one(ID,data,predict_day,time,type,models_save_path = 'models/lstm/'):
     """
     通过lstm模型，添加lstm的预测值obp
     ----------
@@ -109,7 +109,7 @@ def add_obp_by_one(ID,data,predict_day,time,models_save_path = 'models/lstm/'):
         column = 'ob_'+str(i)
         cols.append(column)
     for i in range(-(predict_day-1),0,1):
-        column = '10UV_'+str(i)
+        column = type+'_'+str(i)
         cols.append(column)
     
     data = np.array(data[cols])
@@ -127,6 +127,6 @@ def add_obp_by_one(ID,data,predict_day,time,models_save_path = 'models/lstm/'):
     
     # 保存obp结果
     origin_data['ob_p'] = Predicts
-    cols = ['predict_time','MSL','ob','10UV','ob_p']
+    cols = ['predict_time','MSL',type,'ob_p']
     return origin_data[cols]
 

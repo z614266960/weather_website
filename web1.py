@@ -6,11 +6,12 @@ Created on Mon Nov 23 14:06:13 2020
 """
 
 import os
+import pandas as pd
 from flask import Flask, flash, request, redirect, url_for, escape,jsonify,make_response
 from flask_cors import CORS
 from flask import render_template
 
-from build_model import lstm_model,add_lstm,svr_model
+from build_model import lstm_model,add_lstm,svr_model,forecast
 app = Flask(__name__)
 # 设置跨域
 CORS(app, resources=r'/*')
@@ -71,6 +72,28 @@ def build_svr():
     add_lstm.add_obp(id, season, int(predict_day), time,type)
     svr_model.build_svr(id, season, int(predict_day), time,type)  
     return 'ok'
+
+# 进入预测页面
+@app.route('/predict/view')
+def predict_view():
+    return render_template('forecast_new.html')
+
+
+# 接收预测数据
+@app.route('/predict',methods=['POST'])
+def predict():
+    id = request.form['id']
+    time = request.form['time']
+    type = request.form['type']
+    predict_day = request.form['predict_day']
+    ec_dir = request.form['ec_dir']
+    ob_dir = request.form['ob_dir']
+    
+    # TODO 处理数据
+    data = pd.read_csv('E:\F2273.csv');
+    data = data[0:1]
+    predict = forecast.forecast(id,int(predict_day),time,'3-4',data,type)
+    return jsonify(predict)
 
 if __name__ == '__main__':
     app.run(threaded=True)
