@@ -36,9 +36,8 @@ def build_lstm():
     from process_data import merge_func
     lstm_df = merge_func.data_for_LSTM(id, time, type, dir)
     print(lstm_df)
-    data = []
     
-    lstm_model.build_lstm(id,time,data)
+    lstm_model.build_lstm(id,time,lstm_df)
     return 'ok'
 
 # 进入建立svr页面

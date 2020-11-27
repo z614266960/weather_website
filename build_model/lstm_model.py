@@ -33,7 +33,7 @@ def create_dataset(dataset, look_back, look_after):
     return numpy.array(dataX),numpy.array(dataY)
     
 
-def build_lstm(ID,time,data_path='data/lstm/',
+def build_lstm(ID,time,data=None,data_path='data/lstm/',
                look_back=15,look_after=1,
                models_save_path='models/lstm/',
                images_save_path='images/lstm/'):
@@ -58,10 +58,15 @@ def build_lstm(ID,time,data_path='data/lstm/',
     return:
         
     """
-    FILE_PATH = data_path+time+'/'+ID+'.csv'
+    dataframe = pd.DataFrame()
+    if not( data is None):
+        dataframe = data
+    else :
+        FILE_PATH = data_path+time+'/'+ID+'.csv'
+        dataframe = pd.read_csv(FILE_PATH)
     MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_'+str(look_after)+'.h5'
     
-    dataframe = pd.read_csv(FILE_PATH)
+    
     dataframe.dropna(axis=0,inplace=True)
     dataset = dataframe['ob'].values
     # 将整型变为float
