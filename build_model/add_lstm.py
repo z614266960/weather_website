@@ -7,6 +7,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.externals import joblib
+import joblib
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler

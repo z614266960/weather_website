@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 from datetime import datetime, date, timedelta
 import os
-from process_data import basic_func
+from process_data import basic_func, ob_func
 
 '''
 get_date_before(date_today, index, space) 求某个字符格式日期前推space或者后推space的日期
@@ -79,6 +79,7 @@ def read_file_real(path, hour, feature):
     data = pd.DataFrame(columns=["台站号", "年月日", feature_select])
     original = pd.read_csv(path)
     data = data.append(original, ignore_index=True)#, index_col=0
+    data = data.loc[(data[feature_select]>0)]
 
     # 日期格式校正
     # 先转化为字符串类型
@@ -189,9 +190,23 @@ data_for_LSTM(ID_list, feature) 根据所需预测站点的ID信息，查找各�
 :param: feature: 10UV或者10FG6 分别对应实况的2_min_wind_force和great_wind_force
 :return: dict  {'F2273':DataFrame,'F2286':DataFrame} DataFrame 含id,time,ob三列
 """
-def data_for_LSTM(ID_list, feature, hour):
+def data_for_LSTM(Station_ID, hour, feature, ob_raw_file_path):
+    
+    ob_func.Process_raw_ob_file(ob_raw_file_path)
+    
+    if hour == '08':
+        real_path = os.path.join('./','data','ob','012(08-20)', Station_ID + '.csv')
+    if hour == '20':
+        real_path = os.path.join('./','data','ob','012(20-08)', Station_ID + '.csv')
+    print(real_path)
+    real_data = read_file_real(real_path,hour,feature)
+    print(real_data)
+    # real_data_Total = real_data_Total.append(real_data,ignore_index=False)
+    # real_data_Total = real_data_Total.reset_index(drop = True)
+    return real_data
+
+def data_for_LSTM_old(ID_list, feature, hour):
     data_byID = {}
-    # for hour in hour_list:
     for ID in ID_list:
         if hour == '08':
             real_path = os.path.join('./','data','ob','012(08-20)', ID + '.csv')
