@@ -53,7 +53,6 @@ def build_svr():
     type = request.form['type']
     predict_day = request.form['predict_day']
     season = request.form['season']
-    dir = request.form['dir']
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
     

@@ -40,8 +40,7 @@ txt2csv(file_path, file_name) 提取txt格式ob原始数据中有用的数据，
 :param file_name: txt格式数据文件名称
 :return: 返回处理之后列名为'台站号', '年月日', '小时', '2_min_wind_force', 'great_wind_force'的dataframe格式的数据 
 '''
-def txt2csv(file_path, file_name):
-    txt_path = file_path
+def txt2csv(txt_path):
     # txt_path = os.path.join(file_path, file_name)
     with open(txt_path, 'r') as f:
         rows = f.read()
@@ -60,11 +59,6 @@ def txt2csv(file_path, file_name):
     
     df.columns = ob_columns[0:5]
     df = preprocess_raw_ob(df)
-    # =====================================================
-    # save_path = 'D:\\WorkSpace_Spyder\\气象局项目\\total_Code\\test_data\\test_save\\实况数据\\txt2csv\\'
-    # df.to_csv(save_path + file_name[0:5] + ".csv", index=None, encoding= 'gbk')
-    # print(save_path + file_name[0:5] + ".csv")
-    # =====================================================
     return df
 
 '''
@@ -274,7 +268,8 @@ def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob'):
     file_name_list = os.listdir(raw_file_path)
     ID_list = []
     for file_name in file_name_list:
-        df_temp = txt2csv(raw_file_path, file_name)
+        txt_path = os.path.join(raw_file_path, file_name)
+        df_temp = txt2csv(txt_path)
         ob_max_df = ob_12h_max(df_temp)
         ID = save_ob_local(ob_max_df,save_file_path)
         if ID != None:  
@@ -282,8 +277,7 @@ def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob'):
     return ID_list
 
 def Process_raw_ob_file(raw_file_name, save_file_path = './data/ob'):
-    
-    df_temp = txt2csv(raw_file_name, '')
+    df_temp = txt2csv(raw_file_name)
     ob_max_df = ob_12h_max(df_temp)
     ID = save_ob_local(ob_max_df,save_file_path)
     

@@ -131,34 +131,64 @@ def interpolate_other(file_path, feature, ID_list, Longitude_list, Latitude_list
     file_path = os.path.join(file_path, feature, '999')
     file_name_list = os.listdir(file_path)
     
-    suffix = 0
-    file_byDay = {}
-    for file_name in file_name_list:
-        suffix = int(file_name[9:12])
-        if suffix == 0:
-            continue
-        if suffix % 24 == 0:
-            day = int(suffix /24)
-        else:
-            day = int(suffix / 24) + 1
-            
-        if day < 4:
-            index_sub = 15 + (day - 1) * 24
-            index_upper = 24 + (day - 1)*24
-        else:
-            index_sub = 90 + (day - 4) * 24
-            index_upper = 96 + (day - 4)*24
-        if suffix >= index_sub and suffix <= index_upper:
-            if str(day) + '天' not in file_byDay.keys():
-                file_byDay[str(day) + '天'] = []
-            file_byDay[str(day) + '天'].append(file_name)
-    # print(file_byDay)
-    data_byDay = {}
-    for day_str in file_byDay:
-       raw_file_list = file_byDay[day_str] 
-       data_feature = interpolate_func(Station_Info, file_path, raw_file_list, feature)
-       data_byDay[day_str] = data_feature
-    return data_byDay
+    date_list = [date[0:6]  for date in file_name_list]
+    date_list_new = []
+    for date in date_list:
+        if date not in date_list_new:
+            date_list_new.append(date)
+    hour_list = ['08','20']
+    # date hour day
+    file_sort = {}
+    # 日期
+    for date in date_list_new:
+        file_byhour = {}
+        # 时间段 08 20
+        for hour in hour_list:
+            file_byDay = {}
+            suffix = 0
+            # 天数 1-10天
+            for file_name in file_name_list:
+                file_date = file_name[0:6]
+                file_hour = file_name[6:8]
+                if file_date == date and file_hour == hour :
+                    suffix = int(file_name[9:12])
+                    if suffix == 0:
+                        continue
+                    if suffix % 24 == 0:
+                        day = int(suffix /24)
+                    else:
+                        day = int(suffix / 24) + 1
+                        
+                    if day < 4:
+                        index_sub = 15 + (day - 1) * 24
+                        index_upper = 24 + (day - 1)*24
+                    else:
+                        index_sub = 90 + (day - 4) * 24
+                        index_upper = 96 + (day - 4)*24
+                    if suffix >= index_sub and suffix <= index_upper:
+                        if str(day) + '天' not in file_byDay.keys():
+                            file_byDay[str(day) + '天'] = []
+                        file_byDay[str(day) + '天'].append(file_name)
+            file_byhour[hour] = file_byDay
+        file_sort[date] = file_byhour
+    
+    print(file_sort)
+    data_bydate = {}
+    for date in file_sort.keys():
+        print(date)
+        file_byhour = file_sort[date]
+        data_byhour = {}
+        for hour in file_byhour.keys():
+            file_byDay = file_byhour[hour]
+            data_byDay = {}
+            for day in file_byDay:
+                raw_file_list = file_byDay[day] 
+                data_feature = interpolate_func(Station_Info, file_path, raw_file_list, feature)
+                data_byDay[day] = data_feature
+            data_byhour[hour] = data_byDay
+        data_bydate[date] = data_byhour
+    return data_bydate
+
 
 """
 save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path) 对EC预测的未来10天10U和10V数据进行处理，合并为10UV，并且保存到本地指定位置
@@ -168,52 +198,64 @@ save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path) 对EC预测的未
 :param: file_save_path: 处理后得到的10UV数据存放路径
 :return: 无
 """
+#date hour day
 def save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path):
     basic_func.make_dir(file_save_path, '', 'ECbyID_dir', '10UV')
     
-    for day_str in _10U_dict.keys():
-        _10U_df = _10U_dict[day_str]
-        _10V_df = _10V_dict[day_str]
+    for date in _10U_dict.keys():
+        _10U_byhour = _10U_dict[date]
+        if date not in _10V_dict.keys():
+            continue
+        _10V_byhour = _10V_dict[date]
+        for hour in _10U_byhour.keys():
+            _10U_byday = _10U_byhour[hour]
+            if hour not in _10V_byhour.keys():
+                continue
+            _10V_byday = _10V_byhour[hour]
+            for day in _10U_byday.keys():
+                if day not in _10V_byday.keys():
+                    continue
+                _10U_df = _10U_byday[day]
+                _10V_df = _10V_byday[day]
+                
+                _10UV_df = _10U_df
+                _10UV_df = pd.merge(_10UV_df,_10V_df,how='left',on=["time",'dtime','id','lon','lat'])
+                _10UV_df['10UV'] = None
         
-        _10UV_df = _10U_df
-        _10UV_df = pd.merge(_10UV_df,_10V_df,how='left',on=["time",'dtime','id','lon','lat'])
-        _10UV_df['10UV'] = None
+                for i in range(len(_10U_df)):
+                    _10V_select = _10V_df.loc[(_10V_df['id'] == _10U_df.iloc[i]['id']) & (_10V_df['time'] == _10U_df.iloc[i]['time']) & (_10V_df['dtime'] == _10U_df.iloc[i]['dtime'])]
+                    _10V_select = _10V_select['10V'].values
+                    _10U_select = _10U_df.iloc[i]['10U']
+                    if len(_10V_select) > 0 :
+                        _10UV_df.loc[i, '10UV'] = (abs(_10U_select)**2 + abs(_10V_select[0])**2)**0.5
         
-        for i in range(len(_10U_df)):
-            _10V_select = _10V_df.loc[(_10V_df['id'] == _10U_df.iloc[i]['id']) & (_10V_df['time'] == _10U_df.iloc[i]['time']) & (_10V_df['dtime'] == _10U_df.iloc[i]['dtime'])]
-            _10V_select = _10V_select['10V'].values
-            _10U_select = _10U_df.iloc[i]['10U']
-            if len(_10V_select) > 0 :
-                _10UV_df.loc[i, '10UV'] = (abs(_10U_select)**2 + abs(_10V_select[0])**2)**0.5
-        
-        _10UV_max_df = _10UV_df.groupby(by='id', as_index=False).max()
-        for ID in ID_list:
-            _10UV_select = _10UV_max_df.loc[_10UV_max_df['id'] == ID]
-            _10UV_select['time'] = _10UV_select["time"].astype(str)
-            if len(_10UV_select) > 0:
-                time = _10UV_select['time'].values[0]
-                hour_str = time[11:13]
-                
-                
-                save_path = os.path.join(file_save_path, day_str, hour_str, '10UV', ID + '.csv')
-                
-                day = int(day_str[0:1])
-                _10UV_select['predict_time'] = basic_func.get_date_n(_10UV_select['time'], day, hour_str)
-                _10UV_select.drop(columns = ['dtime','10U','10V'],inplace=True)
-                _10UV_select.rename(columns={'time':'now_time'}, inplace = True)
-                
-                if basic_func.isFileExist(save_path):
-                    df = pd.read_csv(save_path)
-                    df = df.append(_10UV_select, ignore_index = True)
-                    df = df.sort_values(by = ['now_time','predict_time'])
-                    df = df.drop_duplicates(subset = ['predict_time'], keep='first')
-                    df.to_csv(save_path, index=False)
-                else:
-                    cols = _10UV_select.columns
-                    cols = ['now_time','predict_time','id','lon','lat','10UV']
-                    _10UV_select = _10UV_select.loc[:,cols]
-                    # cols.insert(0,cols.pop(cols.index('c')))
-                    _10UV_select.to_csv(save_path, index=False)
+                _10UV_max_df = _10UV_df.groupby(by='id', as_index=False).max()
+                for ID in ID_list:
+                    _10UV_select = _10UV_max_df.loc[_10UV_max_df['id'] == ID]
+                    _10UV_select['time'] = _10UV_select["time"].astype(str)
+                    if len(_10UV_select) > 0:
+                        time = _10UV_select['time'].values[0]
+                        hour_str = time[11:13]
+                        save_path = os.path.join(file_save_path, day, hour, '10UV', ID + '.csv')
+                        
+                        day_int = int(day[0:1])
+                        _10UV_select['predict_time'] = basic_func.get_date_n(_10UV_select['time'], day_int, hour)
+                        _10UV_select.drop(columns = ['dtime','10U','10V'],inplace=True)
+                        _10UV_select.rename(columns={'time':'now_time'}, inplace = True)
+                        
+                        if basic_func.isFileExist(save_path):
+                            df = pd.read_csv(save_path)
+                            df = df.append(_10UV_select, ignore_index = True)
+                            df = df.sort_values(by = ['now_time','predict_time'])
+                            df = df.drop_duplicates(subset = ['predict_time'], keep='first')
+                            df.to_csv(save_path, index=False)
+                        else:
+                            cols = _10UV_select.columns
+                            cols = ['now_time','predict_time','id','lon','lat','10UV']
+                            _10UV_select = _10UV_select.loc[:,cols]
+                            # cols.insert(0,cols.pop(cols.index('c')))
+                            _10UV_select.to_csv(save_path, index=False)
+                        print(save_path)
    
 """
 interpolate_MSL(file_path, file_name, ID_list, Longitude_raw, Latitude_raw) 对站点经纬度进行处理，求得A、B、C、D站点经纬度，再进行插值处理，求得最大的差值
@@ -274,24 +316,56 @@ def process_MSL(file_path, feature, ID_list, Longitude_list, Latitude_list):
     file_path = os.path.join(file_path, feature, '999')
     file_name_list = os.listdir(file_path)
     
-    file_byDay = {}
-    for file_name in file_name_list:
-        suffix = int(file_name[9:12])
-        if suffix == 0:
-            continue
-        if suffix % 24 == 0:
-            day = int(suffix /24)
-            day_str = str(day) + '天'
-            if day_str not in file_byDay.keys():
-                file_byDay[day_str] = []
-            file_byDay[str(day) + '天'].append(file_name)
-    print(file_byDay)
-    data_byDay = {}
-    for day_str in file_byDay:
-       raw_file_list = file_byDay[day_str] 
-       data_feature = interpolate_MSL(file_path, raw_file_list, ID_list, Longitude_list, Latitude_list)
-       data_byDay[day_str] = data_feature
-    return data_byDay
+    date_list = [date[0:6]  for date in file_name_list]
+    date_list_new = []
+    for date in date_list:
+        if date not in date_list_new:
+            date_list_new.append(date)
+    hour_list = ['08','20']
+    
+    file_sort = {}
+    # 日期
+    for date in date_list_new:
+        file_byhour = {}
+        # 时间段 08 20
+        for hour in hour_list:
+            file_byDay = {}
+            suffix = 0
+            # 天数 1-10天
+            for file_name in file_name_list:
+                file_date = file_name[0:6]
+                file_hour = file_name[6:8]
+                if file_date == date and file_hour == hour :
+                    suffix = int(file_name[9:12])
+                    if suffix == 0:
+                        continue
+                    if suffix % 24 == 0:
+                        day = int(suffix /24)
+                        day_str = str(day) + '天'
+                        if day_str not in file_byDay.keys():
+                            file_byDay[day_str] = []
+                        file_byDay[str(day) + '天'].append(file_name)
+            file_byhour[hour] = file_byDay
+        file_sort[date] = file_byhour
+        
+    print(file_sort) 
+
+    data_bydate = {}
+    for date in file_sort.keys():
+        print(date)
+        file_byhour = file_sort[date]
+        data_byhour = {}
+        for hour in file_byhour.keys():
+            file_byDay = file_byhour[hour]
+            data_byDay = {}
+            for day in file_byDay:
+                raw_file_list = file_byDay[day] 
+                data_feature = interpolate_MSL(file_path, raw_file_list, ID_list, Longitude_list, Latitude_list)
+                data_byDay[day] = data_feature
+            data_byhour[hour] = data_byDay
+        data_bydate[date] = data_byhour
+    return data_bydate
+
 
 """
 save_MSL_local(ID_list, MSL_dict, file_save_path) 将EC预测得到未来10天的MSL，保存到本地指定位置
@@ -304,41 +378,42 @@ save_MSL_local(ID_list, MSL_dict, file_save_path) 将EC预测得到未来10天�
 def save_MSL_local(ID_list, MSL_dict, file_save_path):
     basic_func.make_dir(file_save_path, '', 'ECbyID_dir', 'MSL')
     
-    for day_str in MSL_dict.keys():
-        MSL_df = MSL_dict[day_str]
-        for ID in ID_list:
-            MSL_select = MSL_df.loc[MSL_df['id'] == ID]
-            MSL_select['time'] = MSL_select["time"].astype(str)
-            if len(MSL_select) > 0:
-                time = MSL_select['time'].values[0]
-                hour_str = time[11:13]
-                
-                day = int(day_str[0:1])
-                MSL_select['predict_time'] = basic_func.get_date_n(MSL_select['time'], day, hour_str)
-                MSL_select.drop(columns = ['dtime'],inplace=True)
-                MSL_select.rename(columns={'time':'now_time'}, inplace = True)
-                
-
-                save_path = os.path.join(file_save_path, day_str, hour_str, "MSL",  ID + '.csv')#'MSL',
-                
-                if basic_func.isFileExist(save_path):
-                    df = pd.read_csv(save_path)
-                    df = df.append(MSL_select, ignore_index = True)                    
-                    df = df.sort_values(by = ['now_time','predict_time'])
-                    df = df.drop_duplicates(subset = ['predict_time'], keep='first')
-                    df.to_csv(save_path, index=False)
+    for date in MSL_dict.keys():
+        MSL_byhour = MSL_dict[date]
+        for hour in MSL_byhour.keys():
+            MSL_byday = MSL_byhour[hour]
+            for day in MSL_byday.keys():
+                MSL_df = MSL_byday[day]
+    
+                for ID in ID_list:
+                    MSL_select = MSL_df.loc[MSL_df['id'] == ID]
+                    MSL_select['time'] = MSL_select["time"].astype(str)
+                    if len(MSL_select) > 0:
+                        time = MSL_select['time'].values[0]
+                        
+                        day_int = int(day[0:1])
+                        MSL_select['predict_time'] = basic_func.get_date_n(MSL_select['time'], day_int, hour)
+                        MSL_select.drop(columns = ['dtime'],inplace=True)
+                        MSL_select.rename(columns={'time':'now_time'}, inplace = True)
                     
-                else:
-                    cols = MSL_select.columns
-                    cols = ['now_time','predict_time','id','lon','lat','MSL']
-                    MSL_select = MSL_select.loc[:,cols]
-                    # cols.insert(0,cols.pop(cols.index('c')))
-                    MSL_select.to_csv(save_path, index=False)
-                print(save_path)
+                        save_path = os.path.join(file_save_path, day, hour, "MSL",  ID + '.csv')#'MSL',
+                        
+                        if basic_func.isFileExist(save_path):
+                            df = pd.read_csv(save_path)
+                            df = df.append(MSL_select, ignore_index = True)                    
+                            df = df.sort_values(by = ['now_time','predict_time'])
+                            df = df.drop_duplicates(subset = ['predict_time'], keep='first')
+                            df.to_csv(save_path, index=False)
+                            
+                        else:
+                            cols = MSL_select.columns
+                            cols = ['now_time','predict_time','id','lon','lat','MSL']
+                            MSL_select = MSL_select.loc[:,cols]
+                            # cols.insert(0,cols.pop(cols.index('c')))
+                            MSL_select.to_csv(save_path, index=False)
+                        print(save_path)
                 
-                
-
-
+             
 """
 predict_date(file_path) 获取需要预测的日期
 :param: file_path: EC原始数据存放路径
@@ -351,11 +426,16 @@ def predict_date(file_path):
     if len(file_name_list) == 0:
         print("无法获取需预测的日期")
         return None
-    
-    file_name = file_name_list[0]
-    datestr = '20' + file_name[0:2] + '-' + file_name[2:4] + '-'+  file_name[4:6]# + ' ' + file_name[6:8] + ":00:00"
-    # str2date = datetime.strptime(datestr,"%Y-%m-%d %H:%M:%S")#字符串转化为date形式
-    return datestr
+    date_list = [date[0:6]  for date in file_name_list]
+    date_list_new = []
+    for date in date_list:
+        if date not in date_list_new:
+            datestr = '20' + date[0:2] + '-' + date[2:4] + '-'+  date[4:6]
+            date_list_new.append(datestr)
+    # file_name = file_name_list[0]
+    # datestr = '20' + file_name[0:2] + '-' + file_name[2:4] + '-'+  file_name[4:6]# + ' ' + file_name[6:8] + ":00:00"
+    # # str2date = datetime.strptime(datestr,"%Y-%m-%d %H:%M:%S")#字符串转化为date形式
+    return date_list_new
     
 
 """
@@ -381,11 +461,17 @@ def process_raw_EC_data(raw_file_path, ID_list, file_save_path = './data/EC_byID
     # _10V_dict = interpolate_other(raw_file_path, '10V', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
     # save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path)
     
-    MSL_dict = process_MSL(raw_file_path, 'MSL', predict_ID, predict_Longitude_raw, predict_Latitude_raw)    
-    save_MSL_local(ID_list, MSL_dict, file_save_path)
+    # MSL_dict = process_MSL(raw_file_path, 'MSL', predict_ID, predict_Longitude_raw, predict_Latitude_raw)    
+    # save_MSL_local(ID_list, MSL_dict, file_save_path)
     
-    datestr = predict_date(raw_file_path)
-    return datestr
+    datelist = predict_date(raw_file_path)
+    return datelist
+
+
+
+# Station_list = ['F2273']#, 'F2286'
+# EC_file_path = "D:\\WorkSpace_Spyder\\weather_website\\data\\EC_raw_data"
+# datestr = process_raw_EC_data(EC_file_path, Station_list)
     
 
 
