@@ -54,9 +54,16 @@ def build_svr():
     predict_day = request.form['predict_day']
     season = request.form['season']
     dir = request.form['dir']
+    ec_dir = request.form['ec_dir']
+    ob_dir = request.form['ob_dir']
     
     # TODO 处理数据
     data = []
+    # 调用改函数 处理ob EC原始数据
+    from process_data import data_process_func, merge_func
+    Station_list, dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    merge_func.merge_data_for_SVR(id, type, dateslist, time)
+    
     
     add_lstm.add_obp(id, season, int(predict_day), time)
     svr_model.build_svr(id, season, int(predict_day), time)  
