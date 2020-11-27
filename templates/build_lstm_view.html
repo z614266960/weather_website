@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>test</title>
+</head>
+<body>
+    <h1 > 建立lstm模型</h1>
+    <form action="http://localhost:5000/build_lstm_data" method=post>
+    	ID:<input type="text" name="id"/><br/>
+    	起报时间:
+      	<select name='time'>
+  			<option value ="08">08</option>
+  			<option value ="20">20</option>
+  		</select><br/>
+  		类型:
+      	<select name='type'>
+  			<option value ="10UV">10UV</option>
+  			<option value ="10FG6">10FG6</option>
+  		</select><br/>
+  		原始文件夹路径:<input type="text" name="dir"/>
+      	<input type=submit value=Upload>
+    </form>
+</body>
+</html>
