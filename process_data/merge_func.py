@@ -12,6 +12,7 @@ from datetime import datetime
 from datetime import datetime, date, timedelta
 import os
 from process_data import basic_func, ob_func
+from tools import date_tools
 
 '''
 get_date_before(date_today, index, space) 求某个字符格式日期前推space或者后推space的日期
@@ -255,7 +256,10 @@ def data_for_SVR(ID, feature, nowtime, hour, predict_day): #ID_list
     merge_data_for_SVR(ID, feature, date_list, hour)
 
     SVR_dict = {}
+    print(nowtime[0])
     datestr = nowtime + ' ' + hour + ':00:00'
+    season = int(datestr[5:7])
+    season = date_tools.choose_season_by_month(season)
     # for ID in ID_list:
     file_path = os.path.join(FILE_PATH, 'ob_EC_merge', predict_day + '天', hour, feature, ID + '.csv')
     isExist = os.path.exists(file_path)
@@ -270,7 +274,8 @@ def data_for_SVR(ID, feature, nowtime, hour, predict_day): #ID_list
         select_SVR = pd.DataFrame()
     SVR_dict[ID] = select_SVR
     
-    return SVR_dict
+    
+    return SVR_dict, season
         
             
     

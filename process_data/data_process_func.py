@@ -18,4 +18,4 @@ def Start_process_raw_data(ob_file_path, EC_file_path, Station_ID = None):
         Station_list = []
         Station_list.append(Station_ID)
         date_list = EC_func.process_raw_EC_data(EC_file_path,Station_list) #EC_save_path
-    return Station_list, date_list
+    return date_list

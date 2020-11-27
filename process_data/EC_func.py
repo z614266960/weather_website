@@ -429,8 +429,8 @@ def predict_date(file_path):
     date_list = [date[0:6]  for date in file_name_list]
     date_list_new = []
     for date in date_list:
-        if date not in date_list_new:
-            datestr = '20' + date[0:2] + '-' + date[2:4] + '-'+  date[4:6]
+        datestr = '20' + date[0:2] + '-' + date[2:4] + '-'+  date[4:6]
+        if datestr not in date_list_new:
             date_list_new.append(datestr)
     # file_name = file_name_list[0]
     # datestr = '20' + file_name[0:2] + '-' + file_name[2:4] + '-'+  file_name[4:6]# + ' ' + file_name[6:8] + ":00:00"
