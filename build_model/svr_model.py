@@ -22,7 +22,7 @@ def rmse(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
-def build_svr(ID,season,predict_day,time,data_path='data/obp/',
+def build_svr(ID,season,predict_day,time,type,data_path='data/obp/',
                models_save_path='models/svr/',
                images_save_path='images/svr/'):
     '''
@@ -46,18 +46,13 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     -------
     None.
     '''
-    FILE_PATH = data_path+str(predict_day)+'天/'+season+'/'+time+'/'+ID+'_p.csv'
+    FILE_PATH = data_path+str(predict_day)+'天/'+season+'/'+time+'/'+type+'/'+ID+'_p.csv'
     
     orgin_data = pd.read_csv(FILE_PATH)
     
-    # 相关矩阵
-    # corr_matrix = orgin_data.corr()
-    # print(corr_matrix["ob"].sort_values(ascending=False))
-    
     # 分trian,test
-    # 全部用于train 暂时不分
     index = int(len(orgin_data)*0.9)
-    columns_list = ['MSL','10UV','ob_p']
+    columns_list = ['MSL',type,'ob_p']
     # x_train, x_test, y_train, y_test = train_test_split(orgin_data[columns_list], orgin_data['ob'], test_size=0.2,random_state=113)
     x_train = orgin_data[columns_list][:index]
     x_test = orgin_data[columns_list][index:]
@@ -72,7 +67,7 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     # 训练模型，并保存
     model = SVR(kernel='rbf')
     model.fit(x_train_scaler, y_train)
-    model_save_path = models_save_path+season+'/'+str(predict_day)+'天/'+time+'/'
+    model_save_path = models_save_path+season+'/'+str(predict_day)+'天/'+time+'/'+type+'/'
     file_tools.check_dir_and_mkdir(model_save_path)
     joblib.dump(model, model_save_path+ID+'.pkl')
     
@@ -80,22 +75,6 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     # plot_learning_curves(model,x_train_scaler,y_train)
     
     predictions = model.predict(x_test_scaler)
-    
-    # 评估
-# =============================================================================
-#     from sklearn.metrics import mean_absolute_error
-#     my_mae = mean_absolute_error(predictions,y_test)
-#     my_rmse = rmse(predictions,y_test)
-#     print('---------------'+str(predict_day)+'---------------')
-#     print('my_mae:'+str(round(my_mae,2)))
-#     print('my_rmse:'+str(round(my_rmse,2)))
-#     ec_mae = mean_absolute_error(x_test['10UV'],y_test)
-#     ec_rmse = rmse(x_test['10UV'],y_test)
-#     print('ec_mae:'+str(round(ec_mae,2)))
-#     print('ec_rmse:'+str(round(ec_rmse,2)))
-#     print('样本数量：'+str(len(orgin_data)))
-#     print('模型提升率:'+str(round((ec_rmse-my_rmse)/ec_rmse*100,4))+'%')
-# =============================================================================
     
     
     # 检查文件夹路径
@@ -109,7 +88,7 @@ def build_svr(ID,season,predict_day,time,data_path='data/obp/',
     plt.figure(figsize=(10,3))
     plt.plot(X_label, predictions,'r',label='预测结果')
     plt.plot(X_label, y_test,'black',label='理想结果')
-    plt.plot(X_label, x_test['10UV'],'g--',label='ec')
+    plt.plot(X_label, x_test[type],'g--',label='ec')
     plt.title(ID+' '+season+' '+str(predict_day))
     plt.legend()
     plt.savefig(dir_path+ID+'_'+season+'_'+str(predict_day)+'.png')

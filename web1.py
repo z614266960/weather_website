@@ -46,7 +46,7 @@ def build_svr_view():
     return render_template('build_svr_view.html')
 
 # 接收svr参数
-@app.route('/build_svr_data')
+@app.route('/build_svr_data',methods=['POST'])
 def build_svr():
     id = request.form['id']
     time = request.form['time']
@@ -58,8 +58,12 @@ def build_svr():
     # TODO 处理数据
     data = []
     
-    add_lstm.add_obp(id, season, int(predict_day), time)
-    svr_model.build_svr(id, season, int(predict_day), time)  
+    # 处理季节
+    from process_data import obp
+    obp.select_ec_merge_by_month(id,time,season,int(predict_day),type)
+    
+    add_lstm.add_obp(id, season, int(predict_day), time,type)
+    svr_model.build_svr(id, season, int(predict_day), time,type)  
     return 'ok'
 
 if __name__ == '__main__':

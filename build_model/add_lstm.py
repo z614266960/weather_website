@@ -14,7 +14,7 @@ import  os
 from tensorflow.keras.models import Sequential, load_model
 from tools import file_tools
 
-def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
+def add_obp(ID,season,predict_day,time,type,data_path='data/last_15_days/',
             obp_path = 'data/obp/',models_save_path = 'models/lstm/'):
     """
     通过lstm模型，添加lstm的预测值obp
@@ -40,9 +40,9 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
     print('*'*10)
     print(ID,season,predict_day,'start')
     
-    FILES_PATH = data_path+str(predict_day)+'天/'+season+'/'+time+'/'+ID+'.csv'
-    SAVE_PATH = obp_path+str(predict_day)+'天/'+season+'/'+time+'/'
-    MODEL_SAVE_PATH = models_save_path+ID+'_1.h5'
+    FILES_PATH = data_path+str(predict_day)+'天/'+season+'/'+time+'/'+type+'/'+ID+'.csv'
+    SAVE_PATH = obp_path+str(predict_day)+'天/'+season+'/'+time+'/'+type+'/'
+    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_1.h5'
     
     origin_data = pd.read_csv(FILES_PATH)
     origin_data['ob_p'] = ''
@@ -54,7 +54,7 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
         column = 'ob_'+str(i)
         cols.append(column)
     for i in range(-(predict_day-1),0,1):
-        column = '10UV_'+str(i)
+        column = type+'_'+str(i)
         cols.append(column)
     
     data = np.array(data[cols])
@@ -72,7 +72,7 @@ def add_obp(ID,season,predict_day,time,data_path='data/last_15_days/',
     
     # 保存obp结果
     origin_data['ob_p'] = Predicts
-    cols = ['predict_time','MSL','ob','10UV','ob_p']
+    cols = ['predict_time','MSL','ob',type,'ob_p']
     file_tools.check_dir_and_mkdir(SAVE_PATH)
     origin_data[cols].to_csv(SAVE_PATH+ID+'_p.csv',index=False)
 
