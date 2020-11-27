@@ -41,7 +41,8 @@ txt2csv(file_path, file_name) 提取txt格式ob原始数据中有用的数据，
 :return: 返回处理之后列名为'台站号', '年月日', '小时', '2_min_wind_force', 'great_wind_force'的dataframe格式的数据 
 '''
 def txt2csv(file_path, file_name):
-    txt_path = os.path.join(file_path, file_name)
+    txt_path = file_path
+    # txt_path = os.path.join(file_path, file_name)
     with open(txt_path, 'r') as f:
         rows = f.read()
     rows = rows.splitlines()
@@ -260,6 +261,7 @@ def save_ob_local(ob_df, save_path):
             df.to_csv(read_path, index=False)
         else:
             row_add.to_csv(read_path, index=False)
+        print(read_path)
     return ID
 
 '''
@@ -278,3 +280,11 @@ def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob'):
         if ID != None:  
             ID_list.append(ID)
     return ID_list
+
+def Process_raw_ob_file(raw_file_name, save_file_path = './data/ob'):
+    
+    df_temp = txt2csv(raw_file_name, '')
+    ob_max_df = ob_12h_max(df_temp)
+    ID = save_ob_local(ob_max_df,save_file_path)
+    
+

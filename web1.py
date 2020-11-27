@@ -33,6 +33,9 @@ def build_lstm():
     dir = request.form['dir']
     
     # TODO 处理数据
+    from process_data import merge_func
+    lstm_df = merge_func.data_for_LSTM(id, time, type, dir)
+    print(lstm_df)
     data = []
     
     lstm_model.build_lstm(id,time)

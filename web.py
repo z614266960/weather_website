@@ -28,6 +28,7 @@ def process_ob():
 param_dict = {'Station_list': ['F2273', 'F2286'], 'predict_date': '2015-08-15'}
 # 获取处理ob数据的路径
 @app.route('/process/ob/get_dir', methods=['GET', 'POST'])
+@app.route('/process/ob/get_dir', methods=['POST'])
 def process_ob_get_dir():
     ob_dir = request.form['ob_dir']
     ec_dir = request.form['ec_dir']
