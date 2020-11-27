@@ -58,10 +58,9 @@ def build_svr():
     ob_dir = request.form['ob_dir']
     
     # TODO 处理数据
-    data = []
     # 调用改函数 处理ob EC原始数据
     from process_data import data_process_func, merge_func
-    Station_list, dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
     merge_func.merge_data_for_SVR(id, type, dateslist, time)
     
     
@@ -88,11 +87,14 @@ def predict():
     predict_day = request.form['predict_day']
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
-    
+    predict_date = request.form['predict_date']
     # TODO 处理数据
-    data = pd.read_csv('E:\F2273.csv');
-    data = data[0:1]
-    predict = forecast.forecast(id,int(predict_day),time,'3-4',data,type)
+    from process_data import data_process_func, merge_func
+    data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    svr_df, season = merge_func.data_for_SVR(id, type, predict_date, time, predict_day)
+    data = svr_df[id]
+
+    predict = forecast.forecast(id,int(predict_day),time,season,data,type)
     return jsonify(predict)
 
 if __name__ == '__main__':
