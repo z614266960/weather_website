@@ -5,7 +5,6 @@
 <title>test</title>
 </head>
 <body>
-    <h1 > 建立svr模型</h1>
     <form action="http://localhost:5000/predict" method=post>
     	ID:<input type="text" name="id"/><br/>
     	起报时间:
@@ -13,12 +12,7 @@
   			<option value ="08">08</option>
   			<option value ="20">20</option>
   		</select><br/>
-  		类型:
-      	<select name='type'>
-  			<option value ="10UV">10UV</option>
-  			<option value ="10FG6">10FG6</option>
-  		</select><br/>
-  		预报第
+    	预报第
     	<select name='predict_day'>
 			<option value =1>1</option>
 			<option value =2>2</option>
@@ -31,17 +25,16 @@
 			<option value =9>9</option>
 			<option value =10>10</option>
 		</select>天:<br/>
-		季节:
-      	<select name='season'>
-  			<option value ="3-4">3-4</option>
-  			<option value ="5-6">5-6</option>
-  			<option value ="7-9">7-9</option>
-  			<option value ="10-11">10-11</option>
-  			<option value ="12-2">12-2</option>
+		类型:
+      	<select name='type'>
+  			<option value ="10UV">10UV</option>
+  			<option value ="10FG6">10FG6</option>
   		</select><br/>
   		EC原始文件路径:<input type="text" name="ec_dir"/>
   		ob原始文件路径:<input type="text" name="ob_dir"/>
       	<input type=submit value=Upload>
     </form>
 </body>
+
+
 </html>

@@ -95,7 +95,7 @@ def build_svr(ID,season,predict_day,time,type,data_path='data/obp/',
     # plt.show()
 
     
-def svr_predict(ID,data,season,predict_day,time,models_save_path='models/svr/'):
+def svr_predict(ID,data,season,predict_day,time,type,models_save_path='models/svr/'):
     '''
     Parameters
     ----------
@@ -118,7 +118,7 @@ def svr_predict(ID,data,season,predict_day,time,models_save_path='models/svr/'):
     
     orgin_data = data
     
-    columns_list = ['MSL','10UV','ob_p']
+    columns_list = ['MSL',type,'ob_p']
     # x_train, x_test, y_train, y_test = train_test_split(orgin_data[columns_list], orgin_data['ob'], test_size=0.2,random_state=113)
     x = orgin_data[columns_list]
     
@@ -127,7 +127,7 @@ def svr_predict(ID,data,season,predict_day,time,models_save_path='models/svr/'):
     x_train_scaler = min_max_scaler.fit_transform(x)
     
     # 加载模型
-    model_save_path = models_save_path+season+'/'+str(predict_day)+'天/'+time+'/'+ID+'.pkl'
+    model_save_path = models_save_path+season+'/'+str(predict_day)+'天/'+time+'/'+type+'/'+ID+'.pkl'
     model = joblib.load(model_save_path)
     
     predictions = model.predict(x)
