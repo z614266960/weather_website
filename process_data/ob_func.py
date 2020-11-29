@@ -264,21 +264,43 @@ Process_raw_ob_data(raw_file_path,save_file_path) 处理站点的原始实况数
 :param save_file_path: 处理后的实况数据存放路径
 :return: 返回需要预测的站点列表
 '''
-def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob'):
-    file_name_list = os.listdir(raw_file_path)
-    ID_list = []
+# file_type folder file
+def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob', file_type = 'folder'):
+    print("原始实况数据处理中........")
+    file_name_list = []
+    if file_type == 'folder':
+        file_name_list = os.listdir(raw_file_path)
+    if file_type == 'file':
+        raw_file_path, file_name = os.path.split(raw_file_path)
+        file_name_list.append(file_name)
+    print("实况数据存放路径:")
     for file_name in file_name_list:
+        # 将txt文件转为csv文件
         txt_path = os.path.join(raw_file_path, file_name)
         df_temp = txt2csv(txt_path)
+        # 处理实况数据
         ob_max_df = ob_12h_max(df_temp)
-        ID = save_ob_local(ob_max_df,save_file_path)
-        if ID != None:  
-            ID_list.append(ID)
-    return ID_list
+        # 将实况数据存储到本地 返回站点ID
+        save_ob_local(ob_max_df,save_file_path)
+    print("原始实况数据处理完成")
 
-def Process_raw_ob_file(raw_file_name, save_file_path = './data/ob'):
-    df_temp = txt2csv(raw_file_name)
-    ob_max_df = ob_12h_max(df_temp)
-    ID = save_ob_local(ob_max_df,save_file_path)
+
+# def Process_raw_ob_data(raw_file_path, save_file_path = './data/ob'):
+#     print("原始实况数据处理中........")
+#     file_name_list = os.listdir(raw_file_path)
+#     ID_list = []
+#     for file_name in file_name_list:
+#         txt_path = os.path.join(raw_file_path, file_name)
+#         df_temp = txt2csv(txt_path)
+#         ob_max_df = ob_12h_max(df_temp)
+#         ID = save_ob_local(ob_max_df,save_file_path)
+#         if ID != None:  
+#             ID_list.append(ID)
+#     return ID_list
+
+# def Process_raw_ob_file(raw_file_name, save_file_path = './data/ob'):
+#     df_temp = txt2csv(raw_file_name)
+#     ob_max_df = ob_12h_max(df_temp)
+#     ID = save_ob_local(ob_max_df,save_file_path)
     
 

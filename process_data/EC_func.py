@@ -89,8 +89,6 @@ def interpolate_func(Station_Info, file_path, file_name_list, feature):
     sta_ID = meb.sta_data(df,columns = ["id","lon","lat"])    
     meb.set_stadata_coords(sta_ID, level = 0,)
     
-    print("feature:",feature)
-    
     EC_data = pd.DataFrame()
     for file_name in file_name_list:
         time_ymdh = "20"+file_name[0:8]
@@ -171,11 +169,10 @@ def interpolate_other(file_path, feature, ID_list, Longitude_list, Latitude_list
                         file_byDay[str(day) + '天'].append(file_name)
             file_byhour[hour] = file_byDay
         file_sort[date] = file_byhour
-    
-    print(file_sort)
+
     data_bydate = {}
     for date in file_sort.keys():
-        print(date)
+        print('20' + date)
         file_byhour = file_sort[date]
         data_byhour = {}
         for hour in file_byhour.keys():
@@ -201,7 +198,9 @@ save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path) 对EC预测的未
 #date hour day
 def save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path):
     basic_func.make_dir(file_save_path, '', 'ECbyID_dir', '10UV')
-    
+    print('10UV存放路径:', file_save_path)
+    date_list = []
+    date_temp_list = []
     for date in _10U_dict.keys():
         _10U_byhour = _10U_dict[date]
         if date not in _10V_dict.keys():
@@ -230,6 +229,11 @@ def save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path):
                         _10UV_df.loc[i, '10UV'] = (abs(_10U_select)**2 + abs(_10V_select[0])**2)**0.5
         
                 _10UV_max_df = _10UV_df.groupby(by='id', as_index=False).max()
+                date_df = _10UV_max_df['time'].astype(str)
+                date_str = date_df[0]
+                date = date_str[0:10]
+                date_temp_list.append(date)
+
                 for ID in ID_list:
                     _10UV_select = _10UV_max_df.loc[_10UV_max_df['id'] == ID]
                     _10UV_select['time'] = _10UV_select["time"].astype(str)
@@ -255,7 +259,12 @@ def save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path):
                             _10UV_select = _10UV_select.loc[:,cols]
                             # cols.insert(0,cols.pop(cols.index('c')))
                             _10UV_select.to_csv(save_path, index=False)
-                        print(save_path)
+                        # print(save_path)
+
+    for date in date_temp_list:
+        if date not in date_list:
+            date_list.append(date)
+    return date_list
    
 """
 interpolate_MSL(file_path, file_name, ID_list, Longitude_raw, Latitude_raw) 对站点经纬度进行处理，求得A、B、C、D站点经纬度，再进行插值处理，求得最大的差值
@@ -268,7 +277,7 @@ interpolate_MSL(file_path, file_name, ID_list, Longitude_raw, Latitude_raw) 对�
 """
 def interpolate_MSL(file_path, file_name, ID_list, Longitude_raw, Latitude_raw):
     # process_df = copy.deepcopy(MSL_df)
-    df=pd.DataFrame()
+    # df=pd.DataFrame()
     # def interpolate_func(Station_Info, file_path, file_name_list, feature):
     A_Info = GetPositionDelta(ID_list, Longitude_raw, Latitude_raw,1)
     A_data = interpolate_func(A_Info, file_path, file_name,'MSL')
@@ -299,7 +308,6 @@ def interpolate_MSL(file_path, file_name, ID_list, Longitude_raw, Latitude_raw):
     df['A-B']=A_B
     df['D-C']=D_C
     MSL_df['MSL']=df[['A-B','D-C']].max(axis=1)
-    print(MSL_df)
     return MSL_df
 
 """
@@ -347,12 +355,10 @@ def process_MSL(file_path, feature, ID_list, Longitude_list, Latitude_list):
                         file_byDay[str(day) + '天'].append(file_name)
             file_byhour[hour] = file_byDay
         file_sort[date] = file_byhour
-        
-    print(file_sort) 
 
     data_bydate = {}
     for date in file_sort.keys():
-        print(date)
+        print('20'+date)
         file_byhour = file_sort[date]
         data_byhour = {}
         for hour in file_byhour.keys():
@@ -377,7 +383,8 @@ save_MSL_local(ID_list, MSL_dict, file_save_path) 将EC预测得到未来10天�
 """
 def save_MSL_local(ID_list, MSL_dict, file_save_path):
     basic_func.make_dir(file_save_path, '', 'ECbyID_dir', 'MSL')
-    
+    print('MSL存放路径:',file_save_path)
+
     for date in MSL_dict.keys():
         MSL_byhour = MSL_dict[date]
         for hour in MSL_byhour.keys():
@@ -411,7 +418,7 @@ def save_MSL_local(ID_list, MSL_dict, file_save_path):
                             MSL_select = MSL_select.loc[:,cols]
                             # cols.insert(0,cols.pop(cols.index('c')))
                             MSL_select.to_csv(save_path, index=False)
-                        print(save_path)
+                        # print(save_path)
                 
              
 """
@@ -446,6 +453,7 @@ process_raw_EC_data(raw_file_path, ID_list, file_save_path) 对EC原始数据进
 :return: 返回需要预测的日期
 """
 def process_raw_EC_data(raw_file_path, ID_list, file_save_path = './data/EC_byID'): #,feature
+    print("原始EC数据处理中........")
     predict_ID = []
     predict_Longitude_raw = []
     predict_Latitude_raw = []
@@ -455,23 +463,19 @@ def process_raw_EC_data(raw_file_path, ID_list, file_save_path = './data/EC_byID
         predict_Longitude_raw.append(Longitude_raw[index])
         predict_Latitude_raw.append(Latitude_raw[index])
     
-    Station_Info = {"Station_ID":predict_ID, "Longitude":predict_Longitude_raw, "Latitude":predict_Latitude_raw}
+    # Station_Info = {"Station_ID":predict_ID, "Longitude":predict_Longitude_raw, "Latitude":predict_Latitude_raw}
+    print("interpolate 10U.....")
+    _10U_dict = interpolate_other(raw_file_path, '10U', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
+    print("interpolate 10V.....")
+    _10V_dict = interpolate_other(raw_file_path, '10V', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
+    datelist = save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path)
+    print("interpolate MSL.....")
+    MSL_dict = process_MSL(raw_file_path, 'MSL', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
+    save_MSL_local(ID_list, MSL_dict, file_save_path)
 
-    # _10U_dict = interpolate_other(raw_file_path, '10U', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
-    # _10V_dict = interpolate_other(raw_file_path, '10V', predict_ID, predict_Longitude_raw, predict_Latitude_raw)
-    # save_10UV_local(ID_list, _10U_dict, _10V_dict, file_save_path)
-    
-    # MSL_dict = process_MSL(raw_file_path, 'MSL', predict_ID, predict_Longitude_raw, predict_Latitude_raw)    
-    # save_MSL_local(ID_list, MSL_dict, file_save_path)
-    
-    datelist = predict_date(raw_file_path)
+    print("原始EC数据处理完成")
     return datelist
 
-
-
-# Station_list = ['F2273']#, 'F2286'
-# EC_file_path = "D:\\WorkSpace_Spyder\\weather_website\\data\\EC_raw_data"
-# datestr = process_raw_EC_data(EC_file_path, Station_list)
     
 
 

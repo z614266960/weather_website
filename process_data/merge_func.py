@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 from datetime import datetime, date, timedelta
 import os
-from process_data import basic_func, ob_func
+from process_data import basic_func, ob_func, EC_func
 from tools import date_tools
 
 '''
@@ -113,20 +113,32 @@ merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, day, Feature
 :return: 返回SVR模型所需数据
 """
 # Feature 10UV 10FG6
-def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, ID, Feature):
+def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_list, hour, day, ID, Feature):
     merge_file_path = os.path.join('./','data', 'ob_EC_merge')
     basic_func.make_dir(merge_file_path, '', 'merge_dir', Feature)
-    
+
     _10Feature_data = _10Feature_dict[str(day)+'天']
     MSL_data = MSL_dict[str(day) + '天']
-    date_str = date + ' ' + hour + ':00:00'
+    # date_str = date + ' ' + hour + ':00:00'
     
     merge_file_path = os.path.join('./','data', 'ob_EC_merge', str(day) + '天', hour, Feature, ID + '.csv')
     isExist = os.path.exists(merge_file_path)
     if isExist:
         if not _10Feature_data.empty and not MSL_data.empty:
-            select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
-            select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
+            select_10Feature = pd.DataFrame()
+            select_MSL = pd.DataFrame()
+            for nowtime in date_list:
+                date = nowtime[0:10]
+                date_str = date + ' ' + hour + ':00:00'
+                df_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
+                df_msl = MSL_data.loc[MSL_data['now_time'] == date_str]
+                if not df_10Feature.empty:
+                    select_10Feature = select_10Feature.append(df_10Feature, ignore_index = True)
+                if not df_msl.empty:
+                    select_MSL = select_MSL.append(df_msl, ignore_index = True)
+            # merge_data = df.append(merge_data, ignore_index = True)
+            # select_10Feature = _10Feature_data.loc[_10Feature_data['now_time'] == date_str]
+            # select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
         elif not MSL_data.empty:
             select_MSL = MSL_data.loc[MSL_data['now_time'] == date_str]
             select_10Feature = pd.DataFrame()
@@ -184,7 +196,32 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date, hour, day, I
         merge_data = merge_data.sort_values(by = ['now_time','predict_time'])
         merge_data = merge_data.drop_duplicates(subset = ['predict_time'], keep='first')
     merge_data.to_csv(merge_file_path, index = False)
-    print(merge_file_path)
+    # print(merge_file_path)
+
+
+FILE_PATH = './data'
+def merge_data_for_SVR(ID, feature, date_list, hour):  # ID_list
+    print("SVR模型所需数据拼接中........")
+    Feature_path = os.path.join(FILE_PATH, 'EC_byID')
+
+    _10Feature_data_dic = get_day_data_dict(Feature_path, feature, hour, ID)
+    _MSL_data_dic = get_day_data_dict(Feature_path, 'MSL', hour, ID)
+
+    real_path = ''
+    if hour == '08':
+        real_path = os.path.join('./', 'data', 'ob', '012(20-08)', ID + '.csv')
+        hour_ob = '20'
+    if hour == '20':
+        real_path = os.path.join('./', 'data', 'ob', '012(08-20)', ID + '.csv')
+        hour_ob = '08'
+    real_data = read_file_real(real_path, hour_ob, feature)
+
+    # for nowtime in date_list:
+    #     date = nowtime[0:10]
+    #     date_str = date + ' ' + hour + ':00:00'
+    for day in range(1, 11):
+        merge_Feature_OB_data(_10Feature_data_dic, _MSL_data_dic, real_data, date_list, hour, day, ID, feature)
+    print("SVR模型所需数据拼接完成")
 
 """
 data_for_LSTM(ID_list, feature) 根据所需预测站点的ID信息，查找各个站点所有年份的实况数据
@@ -192,62 +229,84 @@ data_for_LSTM(ID_list, feature) 根据所需预测站点的ID信息，查找各�
 :param: feature: 10UV或者10FG6 分别对应实况的2_min_wind_force和great_wind_force
 :return: dict  {'F2273':DataFrame,'F2286':DataFrame} DataFrame 含id,time,ob三列
 """
-def data_for_LSTM(Station_ID, hour, feature, ob_raw_file_path):
+def data_for_LSTM_model(Station_ID, hour, feature, ob_raw_file_path):
+    # 处理原始实况数据
+    ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
     
-    ob_func.Process_raw_ob_file(ob_raw_file_path)
-    
+    # 选取实况数据
     if hour == '08':
         real_path = os.path.join('./','data','ob','012(08-20)', Station_ID + '.csv')
     if hour == '20':
         real_path = os.path.join('./','data','ob','012(20-08)', Station_ID + '.csv')
-    print(real_path)
+    
     real_data = read_file_real(real_path,hour,feature)
-    print(real_data)
-    # real_data_Total = real_data_Total.append(real_data,ignore_index=False)
-    # real_data_Total = real_data_Total.reset_index(drop = True)
     return real_data
 
-def data_for_LSTM_old(ID_list, feature, hour):
-    data_byID = {}
-    for ID in ID_list:
-        if hour == '08':
-            real_path = os.path.join('./','data','ob','012(08-20)', ID + '.csv')
-        if hour == '20':
-            real_path = os.path.join('./','data','ob','012(20-08)', ID + '.csv')
-        real_data = read_file_real(real_path,hour,feature)
-        # real_data_Total = real_data_Total.append(real_data,ignore_index=False)
-        # real_data_Total = real_data_Total.reset_index(drop = True)
-        data_byID[ID] = real_data   
-    return data_byID
 
 """
-data_for_SVR(ID_list, feature, datestr, hour) 拼接SVR模型预测时所需的数据
+data_for_SVR_model(ID_list, feature, datestr, hour) 拼接SVR模型预测时所需的数据
 :param: ID_list: 需要拼接数据的站点对应ID列表
 :param: feature: 10UV或者10FG6 分别对应实况的2_min_wind_force和great_wind_force
 :param: hour: 08时或者20时
 :return: dict  {'1天':DataFrame, '2天':DataFrame.....} DataFrame 含SVR模型所需特征值
 """ 
-FILE_PATH = './data'
-def merge_data_for_SVR(ID, feature, date_list, hour):  #ID_list
-    Feature_path = os.path.join(FILE_PATH, 'EC_byID')
+
+def data_for_SVR_model(Station_ID, hour, feature, ob_raw_file_path, ec_raw_file_path):
+    # 处理原始实况数据 文件夹形式
+    ob_func.Process_raw_ob_data(ob_raw_file_path)
+    # 处理原始EC数据
+    ID_list = []
+    ID_list.append(Station_ID)
+    date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
+    # 拼接SVR模型所需数据
+    merge_data_for_SVR(Station_ID, feature, date_list, hour)
     
-    _10Feature_data_dic = get_day_data_dict(Feature_path, feature,  hour, ID)
-    _MSL_data_dic = get_day_data_dict(Feature_path, 'MSL', hour, ID)
-    
-    real_path = ''
-    if hour == '08':
-        real_path = os.path.join('./','data','ob','012(20-08)', ID + '.csv')
-        hour_ob = '20'
-    if hour == '20':
-        real_path = os.path.join('./','data','ob','012(08-20)', ID + '.csv')
-        hour_ob = '08'
-    real_data = read_file_real(real_path, hour_ob, feature)
-    
-    for nowtime in date_list:
-        date = nowtime[0:10]
-        date_str = date + ' ' + hour + ':00:00'
-        for day in range(1,11):
-            merge_Feature_OB_data(_10Feature_data_dic, _MSL_data_dic, real_data, date, hour, day, ID, feature)
+
+def data_for_predict(Station_ID, hour, feature, nowtime, predict_day, ob_raw_file_path, ec_raw_file_path):
+    # 处理原始实况数据 文件夹形式
+    ob_func.Process_raw_ob_data(ob_raw_file_path)
+    # 处理原始EC数据
+    ID_list = []
+    ID_list.append(Station_ID)
+    date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
+    # 拼接SVR模型所需数据
+    merge_data_for_SVR(Station_ID, feature, date_list, hour)
+    # 筛选指定日期数据
+    datestr = nowtime + ' ' + hour + ':00:00'
+    season = int(datestr[5:7])
+    season = date_tools.choose_season_by_month(season)
+
+    file_path = os.path.join(FILE_PATH, 'ob_EC_merge', predict_day + '天', hour, feature, Station_ID + '.csv')
+    isExist = os.path.exists(file_path)
+    if isExist:
+        df_for_SVR = pd.read_csv(file_path)
+    else:
+        return pd.DataFrame()
+    if not df_for_SVR.empty:
+        select_SVR = df_for_SVR.loc[df_for_SVR['now_time'] == datestr]
+    else:
+        select_SVR = pd.DataFrame()
+    return select_SVR, season
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def data_for_SVR(ID, feature, nowtime, hour, predict_day): #ID_list
     
@@ -276,9 +335,20 @@ def data_for_SVR(ID, feature, nowtime, hour, predict_day): #ID_list
     
     
     return SVR_dict, season
-        
-            
-    
+
+def data_for_LSTM_old(ID_list, feature, hour):
+    data_byID = {}
+    for ID in ID_list:
+        if hour == '08':
+            real_path = os.path.join('./','data','ob','012(08-20)', ID + '.csv')
+        if hour == '20':
+            real_path = os.path.join('./','data','ob','012(20-08)', ID + '.csv')
+        real_data = read_file_real(real_path,hour,feature)
+        # real_data_Total = real_data_Total.append(real_data,ignore_index=False)
+        # real_data_Total = real_data_Total.reset_index(drop = True)
+        data_byID[ID] = real_data   
+    return data_byID
+
     
     
     
