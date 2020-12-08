@@ -64,7 +64,7 @@ def build_lstm(ID,time,data=None,data_path='data/lstm/',
     else :
         FILE_PATH = data_path+time+'/'+ID+'.csv'
         dataframe = pd.read_csv(FILE_PATH)
-    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_'+str(look_after)+'.h5'
+    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_'+str(look_after)+'.h5'
     
     
     dataframe.dropna(axis=0,inplace=True)
@@ -93,7 +93,7 @@ def build_lstm(ID,time,data=None,data_path='data/lstm/',
     model.add(LSTM(4, input_shape=(None,1)))
     model.add(Dense(look_after))
     model.compile(loss='mean_squared_error', optimizer='adam')
-    model.fit(trainX, trainY, epochs=100, batch_size=16)
+    model.fit(trainX, trainY, epochs=3000, batch_size=256)
     file_tools.check_dir_and_mkdir(models_save_path)
     model.save(MODEL_SAVE_PATH)
     

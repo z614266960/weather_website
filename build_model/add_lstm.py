@@ -42,7 +42,7 @@ def add_obp(ID,season,predict_day,time,type,data_path='data/last_15_days/',
     
     FILES_PATH = data_path+str(predict_day)+'天/'+season+'/'+time+'/'+type+'/'+ID+'.csv'
     SAVE_PATH = obp_path+str(predict_day)+'天/'+season+'/'+time+'/'+type+'/'
-    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_1.h5'
+    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_1.h5'
     
     origin_data = pd.read_csv(FILES_PATH)
     origin_data['ob_p'] = ''
@@ -97,7 +97,7 @@ def add_obp_by_one(ID,data,predict_day,time,type,models_save_path = 'models/lstm
         添加ob_p后的数据
     """
     
-    MODEL_SAVE_PATH = models_save_path+ID+'_'+time+'_1.h5'
+    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_'+'_1.h5'
     
     origin_data = data
     origin_data['ob_p'] = ''
