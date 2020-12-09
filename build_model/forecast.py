@@ -5,9 +5,12 @@ Created on Tue Nov 24 21:36:42 2020
 @author: 61426
 """
 import pandas as pd
-from build_model import add_lstm,svr_model
-def forecast(ID,predict_day,time,season,data,type):
-    '''
+import os
+from build_model import add_lstm, svr_model
+
+
+def forecast(ID, predict_day, time, season, data, type):
+    """
     Parameters
     ----------
     ID : string
@@ -21,12 +24,10 @@ def forecast(ID,predict_day,time,season,data,type):
     -------
     Returns : dataframe
     预测结果
-    '''
-    
-    
-    obp_data = add_lstm.add_obp_by_one(ID,data,predict_day,time,type)
-    predictions = svr_model.svr_predict(ID,obp_data,season,
-                              predict_day,'08',type)
-    
+    """
+
+    obp_data = add_lstm.add_obp_by_one(ID, data, predict_day, time, type)
+    predictions = svr_model.svr_predict(ID, obp_data, season,
+                                        predict_day, '08', type)
+
     return predictions[0]
-    
