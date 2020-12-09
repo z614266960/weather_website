@@ -171,12 +171,10 @@ ob_12h_max(ob_raw_df):查找12小时中ob中2分钟风速，极大风速的最�
 '''
 def ob_12h_max(ob_raw_df):
     # print("12h寻找最大值")
-    
-    ID_list = []
+
     ID_group = ob_raw_df.groupby("台站号").groups
     ID_list = list(ID_group.keys())
-    
-    times_list = []
+
     times_group = ob_raw_df.groupby("年月日").groups
     times_list = list(times_group.keys())
     
