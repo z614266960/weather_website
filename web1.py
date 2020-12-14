@@ -16,12 +16,11 @@ from build_model import lstm_model, add_lstm, svr_model, forecast
 app = Flask(__name__)
 # 设置跨域
 CORS(app, resources=r'/*')
-
+@app.route('/index')
+def index():
+    return render_template('index.html')
 
 # app.debug = True
-
-
-# 进入建立lstm页面
 @app.route('/build/lstm/view')
 def build_lstm_view():
     return render_template('build_lstm_view.html')

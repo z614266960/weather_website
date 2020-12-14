@@ -5,8 +5,11 @@
 <title>test</title>
 </head>
 <body>
-    <h1 > 建立lstm模型</h1>
-    <form action="http://localhost:5000/build_lstm_data" method=post>
+<h1> 建立lstm模型</h1>
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="home">
+        <form action="http://localhost:5000/build_lstm_data" method=post>
     	ID:<input type="text" name="id"/><br/>
     	起报时间:
       	<select name='time'>
@@ -21,5 +24,9 @@
   		原始文件夹路径:<input type="text" name="dir"/>
       	<input type=submit value=Upload>
     </form>
+  </div>
+
+</div>
+
 </body>
 </html>
