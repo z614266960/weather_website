@@ -93,8 +93,10 @@ def predict():
     ob_dir = request.form['ob_dir']
     # predict_date = request.form['predict_date']
     predict_date = '2015-07-14'
+    predict_date = request.form['predict_date']
     svr_df, season = data_process.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
 
+    print(svr_df)
     lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
     svr_path = 'models/svr' + '/' + season + '/' + str(
         predict_day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
