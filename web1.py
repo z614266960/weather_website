@@ -51,7 +51,6 @@ def build_svr_view():
 # 接收svr参数
 @app.route('/build_svr_data', methods=['POST'])
 def build_svr():
-    id = request.form['id']
     time = request.form['time']
     type = request.form['type']
     predict_day = request.form['predict_day']

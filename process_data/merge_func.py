@@ -111,6 +111,42 @@ def read_file_real(path, hour, feature):
     return data
 
 
+def fill_func(df_row, feature, index, day):
+    if index >= day:
+        return 'nan'
+    if df_row.loc[feature + '_-' + str(index)] is 'nan':
+        index = index + 1
+        return fill_func(df_row, feature, index, day)
+    else:
+        return df_row.loc[feature + '_-' + str(index)]
+
+
+def fill_empty_cell(df_row, feature, day):
+    # 实况数据为空
+    if df_row.loc['ob'] is 'nan':
+        data = fill_func(df_row, 'ob', 1, 15)
+        # 空值处理
+        if data is 'nan':
+            return False
+        else:
+            df_row['ob'] = data
+
+    for sub_index in range(1, day):
+        if df_row.loc[feature + '_-' + str(sub_index)] is 'nan':
+            data = fill_func(df_row, feature, sub_index + 1, day)
+            if data is 'nan':
+                data = df_row.loc[feature]
+            df_row[feature + '_-' + str(sub_index)] = data
+
+    for sub_index in range(1, 16):
+        if df_row.loc['ob_-' + str(sub_index)] is 'nan':
+            data = fill_func(df_row, 'ob', sub_index + 1, 15)
+            if data is 'nan':
+                data = df_row.loc['ob']
+            df_row['ob_-' + str(sub_index)] = data
+    return df_row
+
+
 """
 merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, day, Feature) 拼接SVR模型所需数据，存在DataFrame中
 :param: _10Feature_dict: dict 存放EC预测的未来10天的10UV或者10FG6数据
@@ -201,6 +237,10 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, hour, da
             ob_select = ob_select['ob'].values
             if len(ob_select) > 0:
                 row['ob_-' + str(sub_index)] = ob_select[0]
+
+        row = fill_empty_cell(row, '10UV', day)
+        if row is False:
+            continue
         merge_data.loc[index] = row
     if isExist:
         df = pd.read_csv(merge_file_path)
@@ -286,10 +326,11 @@ def data_for_SVR_model(Station_ID, hour, feature, ob_raw_file_path, ec_raw_file_
 
 def data_for_predict(Station_ID, hour, feature, nowtime, predict_day, ob_raw_file_path, ec_raw_file_path):
     # 处理原始实况数据 文件夹形式
-    ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
+    # ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
     # 处理原始EC数据
     ID_list = [Station_ID]
-    date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
+    # date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
+    date_list = ['2015-07-13']
     # 拼接SVR模型所需数据
     merge_data_for_SVR(Station_ID, feature, date_list, hour)
     # 筛选指定日期数据
@@ -302,7 +343,7 @@ def data_for_predict(Station_ID, hour, feature, nowtime, predict_day, ob_raw_fil
     if isExist:
         df_for_SVR = pd.read_csv(file_path)
     else:
-        return pd.DataFrame()
+        return pd.DataFrame(), None
     if not df_for_SVR.empty:
         select_SVR = df_for_SVR.loc[df_for_SVR['now_time'] == datestr]
     else:
