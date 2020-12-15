@@ -30,4 +30,4 @@ def forecast(ID, predict_day, time, season, data, type):
     predictions = svr_model.svr_predict(ID, obp_data, season,
                                         predict_day, '08', type)
 
-    return predictions[0]
+    return predictions

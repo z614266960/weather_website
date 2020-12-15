@@ -86,32 +86,34 @@ def predict_view():
 # 接收预测数据
 @app.route('/predict', methods=['POST'])
 def predict():
-    print("===========")
     id = request.form['id']
     time = request.form['time']
     type = request.form['type']
     predict_day = request.form['predict_day']
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
-    # predict_date = request.form['predict_date']
-    predict_date = '2015-07-14'
+    predict_date = request.form['predict_date']
     svr_df, season = data_process.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
+
+    predictions = []
     # from process_data import merge_func
     # # data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
     # # svr_df, season = merge_func.data_for_SVR(id, type, predict_date, time, predict_day)
     # # data = svr_df[id]
     # svr_df, season = merge_func.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
 
-    lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
-    svr_path = 'models/svr' + '/' + season + '/' + str(
-        predict_day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
-    if not os.path.exists(lstm_path):
-        return jsonify('lstm模型为空')
-    if not os.path.exists(svr_path):
-        return jsonify('svr模型为空')
-
-    predict = forecast.forecast(id, int(predict_day), time, season, svr_df, type)
-    return jsonify(predict)
+    for day in range(1,1+int(predict_day)):
+        lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
+        svr_path = 'models/svr' + '/' + season + '/' + str(
+            day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
+        if not os.path.exists(lstm_path):
+            return jsonify('lstm模型为空')
+        if not os.path.exists(svr_path):
+            return jsonify('svr模型为空')
+        prediction = forecast.forecast(id, int(day), time, season, svr_df, type).tolist()[0]
+        predictions.append(prediction)
+    result = {'predictions': predictions}
+    return jsonify(result)
 
 
 if __name__ == '__main__':
