@@ -51,6 +51,7 @@ def build_svr_view():
 # 接收svr参数
 @app.route('/build_svr_data', methods=['POST'])
 def build_svr():
+    id = request.form['id']
     time = request.form['time']
     type = request.form['type']
     predict_day = request.form['predict_day']
@@ -61,6 +62,11 @@ def build_svr():
     # TODO 处理数据
     # 调用改函数 处理ob EC原始数据
     data_process.data_for_SVR_model(id, time, type, ob_dir, ec_dir)
+    # from process_data import merge_func
+    # # dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    # # merge_func.merge_data_for_SVR(id, type, dateslist, time)
+    # # SVR模型所需数据
+    # merge_func.data_for_SVR_model(id, time, type, ob_dir, ec_dir)
 
     # 处理季节
     from process_data import obp
@@ -87,20 +93,27 @@ def predict():
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
     predict_date = request.form['predict_date']
-
     svr_df, season = data_process.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
-    print(svr_df)
 
-    lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
-    svr_path = 'models/svr' + '/' + season + '/' + str(
-        predict_day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
-    if not os.path.exists(lstm_path):
-        return jsonify('lstm模型为空')
-    if not os.path.exists(svr_path):
-        return jsonify('svr模型为空')
+    predictions = []
+    # from process_data import merge_func
+    # # data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    # # svr_df, season = merge_func.data_for_SVR(id, type, predict_date, time, predict_day)
+    # # data = svr_df[id]
+    # svr_df, season = merge_func.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
 
-    predict = forecast.forecast(id, int(predict_day), time, season, svr_df, type)
-    return jsonify(predict)
+    for day in range(1,1+int(predict_day)):
+        lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
+        svr_path = 'models/svr' + '/' + season + '/' + str(
+            day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
+        if not os.path.exists(lstm_path):
+            return jsonify('lstm模型为空')
+        if not os.path.exists(svr_path):
+            return jsonify('svr模型为空')
+        prediction = forecast.forecast(id, int(day), time, season, svr_df, type).tolist()[0]
+        predictions.append(prediction)
+    result = {'predictions': predictions}
+    return jsonify(result)
 
 
 if __name__ == '__main__':
