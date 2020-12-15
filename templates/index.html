@@ -116,6 +116,12 @@
       <!-- svr建模 -->
     <div class="layui-tab-item">
         <form action="http://localhost:5000/build_svr_data" method=post>
+            <div class="layui-form-item">
+                <label class="layui-form-label">ID:</label>
+                <div class="layui-input-block">
+                    <input type="text" name="id" lay-verify="title" autocomplete="off" placeholder="请输入站点ID" class="layui-input">
+                </div>
+            </div>
             <div class="layui-form layui-form-item">
                 <label class="layui-form-label">起报时间</label>
                 <div class="layui-input-block">
