@@ -64,7 +64,8 @@ def build_lstm(ID,time,data=None,data_path='data/lstm/',
     else :
         FILE_PATH = data_path+time+'/'+ID+'.csv'
         dataframe = pd.read_csv(FILE_PATH)
-    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_'+str(look_after)+'.h5'
+    models_save_path = models_save_path+time+'/'
+    MODEL_SAVE_PATH = models_save_path+ID+'_'+str(look_after)+'.h5'
     
     
     dataframe.dropna(axis=0,inplace=True)

@@ -97,7 +97,7 @@ def add_obp_by_one(ID,data,predict_day,time,type,models_save_path = 'models/lstm
         添加ob_p后的数据
     """
     
-    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_'+'_1.h5'
+    MODEL_SAVE_PATH = models_save_path+time+'/'+ID+'_1.h5'
     
     origin_data = data
     origin_data['ob_p'] = ''
