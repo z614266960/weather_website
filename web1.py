@@ -12,6 +12,7 @@ from flask_cors import CORS
 from flask import render_template
 
 from build_model import lstm_model, add_lstm, svr_model, forecast
+from process_data import data_process
 
 app = Flask(__name__)
 # 设置跨域
@@ -33,10 +34,8 @@ def build_lstm():
     time = request.form['time']
     type = request.form['type']
     dir = request.form['dir']
-
     # TODO 处理数据
-    from process_data import merge_func
-    lstm_df = merge_func.data_for_LSTM_model(id, time, type, dir)
+    lstm_df = data_process.data_for_LSTM_model(id, time, type, dir)
     print(lstm_df)
 
     lstm_model.build_lstm(id, time, lstm_df)
@@ -62,11 +61,12 @@ def build_svr():
 
     # TODO 处理数据
     # 调用改函数 处理ob EC原始数据
-    from process_data import merge_func
-    # dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
-    # merge_func.merge_data_for_SVR(id, type, dateslist, time)
-    # SVR模型所需数据
-    merge_func.data_for_SVR_model(id, time, type, ob_dir, ec_dir)
+    data_process.data_for_SVR_model(id, time, type, ob_dir, ec_dir)
+    # from process_data import merge_func
+    # # dateslist = data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    # # merge_func.merge_data_for_SVR(id, type, dateslist, time)
+    # # SVR模型所需数据
+    # merge_func.data_for_SVR_model(id, time, type, ob_dir, ec_dir)
 
     # 处理季节
     from process_data import obp
@@ -86,20 +86,21 @@ def predict_view():
 # 接收预测数据
 @app.route('/predict', methods=['POST'])
 def predict():
+    print("===========")
     id = request.form['id']
     time = request.form['time']
     type = request.form['type']
     predict_day = request.form['predict_day']
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
-    predict_date = request.form['predict_date']
-
-
-    from process_data import merge_func
-    # data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
-    # svr_df, season = merge_func.data_for_SVR(id, type, predict_date, time, predict_day)
-    # data = svr_df[id]
-    svr_df, season = merge_func.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
+    # predict_date = request.form['predict_date']
+    predict_date = '2015-07-14'
+    svr_df, season = data_process.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
+    # from process_data import merge_func
+    # # data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
+    # # svr_df, season = merge_func.data_for_SVR(id, type, predict_date, time, predict_day)
+    # # data = svr_df[id]
+    # svr_df, season = merge_func.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
 
     lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
     svr_path = 'models/svr' + '/' + season + '/' + str(

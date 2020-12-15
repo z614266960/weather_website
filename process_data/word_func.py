@@ -99,6 +99,6 @@ data_dict = {
 #     '10UV': _10UV_list,
 #     '10FG6': _10FG6_list
 # }
-data_df = pd.DataFrame(data_dict)
-
-generate_word_local(data_df)
+# data_df = pd.DataFrame(data_dict)
+#
+# generate_word_local(data_df)
