@@ -108,7 +108,7 @@ def predict():
         prediction = forecast.forecast(id, int(day), time, season, svr_df, type).tolist()[0]
         predictions.append(prediction)
     result = {'predictions': predictions}
-    return jsonify(result)
+    return result
 
 
 if __name__ == '__main__':

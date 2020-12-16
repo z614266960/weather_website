@@ -93,6 +93,12 @@
     <div class="layui-tab-item ">
         <!-- action="http://localhost:5000/build_svr_data" method=post -->
         <form class="layui-form" >
+            <div class="layui-form-item">
+                <label class="layui-form-label">ID:</label>
+                <div class="layui-input-block">
+                    <input type="text" name="id" lay-verify="required" autocomplete="off" placeholder="请输入站点ID" class="layui-input">
+                </div>
+            </div>
             <div class="layui-form layui-form-item">
                 <label class="layui-form-label">起报时间</label>
                 <div class="layui-input-block">
@@ -388,8 +394,10 @@
             });
             //监听lstm提交事件
             form.on('submit(form_lstm)', function(data){
+                layer.msg('加载模型需要一定时间，请耐心等待')
 			    $.post("http://localhost:5000/build_lstm_data",data.field,function(res){
                     layer.msg(res)
+                    layer.msg('请继续加载svr模型')
                 })
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });
@@ -397,13 +405,18 @@
 			form.on('submit(form_svr)', function(data){
 			    $.post("http://localhost:5000/build_svr_data",data.field,function(res){
                     layer.msg(res)
+                    layer.msg('模型建立完毕，可以开始预测')
                 })
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });
 			//监听predict提交事件
 			form.on('submit(form_predict)', function(data){
 			    $.post("http://localhost:5000/predict",data.field,function(res){
-                    layer.msg(res)
+                    {#layer.msg(res)#}
+                    layer.open({
+                        type: 1,
+                        content: res //这里content是一个普通的String
+                    });
                 })
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });

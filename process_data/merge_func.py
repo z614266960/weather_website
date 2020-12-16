@@ -50,7 +50,7 @@ def get_day_data_dict(path, feature, hour, Station_ID):
     # D:\WorkSpace_Spyder\气象局项目\total_Code\EC_byID\1天\08\MSL
     _data_dict = {}
     for day in range(1, 11):
-        _10Feature_path = os.path.join(path, str(day) + '天\\', hour, feature, Station_ID + '.csv')
+        _10Feature_path = os.path.join(path, str(day) + '天', hour, feature, Station_ID + '.csv')
 
         isExist = os.path.exists(_10Feature_path)
         if not isExist:
@@ -239,8 +239,8 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, hour, da
                 row['ob_-' + str(sub_index)] = ob_select[0]
 
         row = fill_empty_cell(row, '10UV', day)
-        if row is False:
-            continue
+        # if row is False:
+        #     continue
         merge_data.loc[index] = row
     if isExist:
         df = pd.read_csv(merge_file_path)
@@ -248,6 +248,7 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, hour, da
         merge_data = merge_data.sort_values(by=['now_time', 'predict_time'])
         merge_data = merge_data.drop_duplicates(subset=['predict_time'], keep='first')
     merge_data.to_csv(merge_file_path, index=False)
+    print(merge_file_path)
 
 
 FILE_PATH = './data'
