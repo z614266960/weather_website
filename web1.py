@@ -88,8 +88,7 @@ def predict():
     ec_dir = request.form['ec_dir']
     ob_dir = request.form['ob_dir']
     predict_date = request.form['predict_date']
-    svr_df, season = data_process.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
-    print(svr_df)
+
     predictions = []
     # from process_data import merge_func
     # # data_process_func.Start_process_raw_data(ob_dir, ec_dir,id)
@@ -98,6 +97,7 @@ def predict():
     # svr_df, season = merge_func.data_for_predict(id, time, type, predict_date, predict_day, ob_dir, ec_dir)
 
     for day in range(1,1+int(predict_day)):
+        svr_df, season = data_process.data_for_predict(id, time, type, predict_date, day, ob_dir, ec_dir)
         lstm_path = 'models/lstm' + '/' + time + '/' + id + '_1.h5'
         svr_path = 'models/svr' + '/' + season + '/' + str(
             day) + '天' + '/' + time + '/' + type + '/' + id + '.pkl'
@@ -108,7 +108,7 @@ def predict():
         prediction = forecast.forecast(id, int(day), time, season, svr_df, type).tolist()[0]
         predictions.append(prediction)
     result = {'predictions': predictions}
-    return result
+    return jsonify(result)
 
 
 if __name__ == '__main__':
