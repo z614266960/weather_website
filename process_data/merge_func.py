@@ -248,7 +248,6 @@ def merge_Feature_OB_data(_10Feature_dict, MSL_dict, ob_data, date_str, hour, da
         merge_data = merge_data.sort_values(by=['now_time', 'predict_time'])
         merge_data = merge_data.drop_duplicates(subset=['predict_time'], keep='first')
     merge_data.to_csv(merge_file_path, index=False)
-    # print(merge_file_path)
 
 
 FILE_PATH = './data'
@@ -292,7 +291,7 @@ data_for_LSTM(ID_list, feature) 根据所需预测站点的ID信息，查找各�
 
 def data_for_LSTM_model(Station_ID, hour, feature, ob_raw_file_path):
     # 处理原始实况数据
-    ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
+    ob_func.Process_raw_ob_data(ob_raw_file_path)
 
     # 选取实况数据
     if hour == '08':
@@ -326,11 +325,10 @@ def data_for_SVR_model(Station_ID, hour, feature, ob_raw_file_path, ec_raw_file_
 
 def data_for_predict(Station_ID, hour, feature, nowtime, predict_day, ob_raw_file_path, ec_raw_file_path):
     # 处理原始实况数据 文件夹形式
-    # ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
+    ob_func.Process_raw_ob_data(ob_raw_file_path, file_type='file')
     # 处理原始EC数据
     ID_list = [Station_ID]
-    # date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
-    date_list = ['2015-07-13']
+    date_list = EC_func.process_raw_EC_data(ec_raw_file_path, ID_list)
     # 拼接SVR模型所需数据
     merge_data_for_SVR(Station_ID, feature, date_list, hour)
     # 筛选指定日期数据
@@ -347,14 +345,13 @@ def data_for_predict(Station_ID, hour, feature, nowtime, predict_day, ob_raw_fil
     if not df_for_SVR.empty:
         select_SVR = df_for_SVR.loc[df_for_SVR['now_time'] == datestr]
     else:
-        select_SVR = pd.DataFrame()
+        return pd.DataFrame(), None
     return select_SVR, season
 
 
 def data_for_SVR(ID, feature, nowtime, hour, predict_day):  # ID_list
 
-    date_list = []
-    date_list.append(nowtime)
+    date_list = [nowtime]
     merge_data_for_SVR(ID, feature, date_list, hour)
 
     SVR_dict = {}
