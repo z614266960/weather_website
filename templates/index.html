@@ -42,7 +42,6 @@
     <li class="layui-this">Lstm模型</li>
     <li>Svr模型</li>
     <li>模型预测</li>
-    <li>生成word报文</li>
   </ul>
   <div class="layui-tab-content" style="height: 500px">
 
@@ -77,7 +76,7 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">原始文件夹路径:</label>
                 <div class="layui-input-block">
-                    <input type="text" name="dir" lay-verify="required" autocomplete="off" placeholder="请输入原始文件夹路径:" class="layui-input">
+                    <input type="text" name="dir" lay-verify="required" autocomplete="off" placeholder="请输入原始文件夹路径" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item">
@@ -232,7 +231,7 @@
             <div class="layui-form-item">
                 <div class="layui-input-block">
                     <button button class="layui-btn" lay-submit lay-filter="form_predict">上传</button>
-                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    <button button class="layui-btn" lay-submit lay-filter="word_load">生成报文</button>
                 </div>
             </div>
 
@@ -241,75 +240,11 @@
             <div id="main" style="width: 500px;height:480px;padding-left: 50px;"></div>
         </div>
     </div>
-    <div class="layui-tab-item">
-        <button type="button" class="layui-btn ">点击生成word报文</button>
-    </div>
 </div>
 </body>
 
 <script>
 
-    // 基于准备好的dom，初始化echarts实例
-        var myChart = echarts.init(document.getElementById('main'));
-
-        // 指定图表的配置项和数据
-        var option = {
-    title: {
-        text: '未来风速变化',
-    },
-    tooltip: {
-        trigger: 'axis'
-    },
-    legend: {
-        data: ['十米平均风', '十米阵风']
-    },
-    toolbox: {
-        show: true,
-        feature: {
-            dataZoom: {
-                yAxisIndex: 'none'
-            },
-            dataView: {readOnly: false},
-            magicType: {type: ['line', 'bar']},
-            restore: {},
-            saveAsImage: {
-
-            }
-        }
-    },
-    xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: ['12/1', '12/2', '12/3', '12/4', '12/5', '12/6', '12/7','12/8','12/9','12/10']
-    },
-    yAxis: {
-        type: 'value',
-        axisLabel: {
-            formatter: '{value} m/s'
-        }
-    },
-    series: [
-        {
-            name: '十米平均风',
-            type: 'line',
-            data: [3,3.4,4.1,5.3,6.3,4.5,6.6,6.2,5.8,6.0],
-            markPoint: {
-                data: [
-                    {type: 'max', name: '最大值'},
-                    {type: 'min', name: '最小值'}
-                ]
-            },
-            markLine: {
-                data: [
-                    {type: 'average', name: '平均值'}
-                ]
-            }
-        },
-    ]
-};
-
-        // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
         layui.use('upload', function() {
         layui.use(['form', 'layedit', 'element','laydate'], function () {
             var form = layui.form
@@ -402,24 +337,102 @@
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });
 			//监听svr提交事件
+            form.render();
 			form.on('submit(form_svr)', function(data){
-			    $.post("http://localhost:5000/build_svr_data",data.field,function(res){
-                    layer.msg(res)
-                    layer.msg('模型建立完毕，可以开始预测')
+			    var svrData=data.field
+                var url='http://localhost:5000/build_svr_data'
+                $.ajax({
+                    url:url,
+                    type:'post',
+                    data:svrData,
+                    success(res){
+                        console.log(res)
+                    }
                 })
+
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });
 			//监听predict提交事件
 			form.on('submit(form_predict)', function(data){
 			    $.post("http://localhost:5000/predict",data.field,function(res){
-                    {#layer.msg(res)#}
-                    layer.open({
-                        type: 1,
-                        content: res //这里content是一个普通的String
-                    });
+                    function getNextDate(date, day) {
+　　                      var dd = new Date(date);
+　　                      dd.setDate(dd.getDate() + day);
+　　                      var y = dd.getFullYear();
+　　                      var m = dd.getMonth() + 1 < 10 ? "0" + (dd.getMonth() + 1) : dd.getMonth() + 1;
+　　                      var d = dd.getDate() < 10 ? "0" + dd.getDate() : dd.getDate();
+　　                      return  m + "-" + d;
+                    };
+                 let dateArr=[]
+                 for (var i = 1; i < data.field.predict_day; i++) {
+                     dateArr.push(getNextDate(data.field.predict_date,i))
+                 }
+                 var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        var option = {
+    title: {
+        text: '未来风速变化',
+    },
+    tooltip: {
+        trigger: 'axis'
+    },
+    legend: {
+        data: ['十米平均风', '十米阵风']
+    },
+    toolbox: {
+        show: true,
+        feature: {
+            dataZoom: {
+                yAxisIndex: 'none'
+            },
+            dataView: {readOnly: false},
+            magicType: {type: ['line', 'bar']},
+            restore: {},
+            saveAsImage: {
+
+            }
+        }
+    },
+    xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: dateArr
+    },
+    yAxis: {
+        type: 'value',
+        axisLabel: {
+            formatter: '{value} m/s'
+        }
+    },
+    series: [
+        {
+            name: '十米平均风',
+            type: 'line',
+            data: res.predictions,
+            markPoint: {
+                data: [
+                    {type: 'max', name: '最大值'},
+                    {type: 'min', name: '最小值'}
+                ]
+            },
+            markLine: {
+                data: [
+                    {type: 'average', name: '平均值'}
+                ]
+            }
+        },
+    ]
+};
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+
                 })
 				return false;  //阻止表单跳转。如果需要表单跳转，去掉这段即可。
             });
+			// 基于准备好的dom，初始化echarts实例
+
 
             //表单赋值
             layui.$('#LAY-component-form-setval').on('click', function () {
